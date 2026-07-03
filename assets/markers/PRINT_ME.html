@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hiro Marker — พิมพ์แล้วเล็งกล้อง / Print &amp; scan</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 24px; }
+    h1 { font-size: 20px; }
+    p  { color: #555; }
+    .marker-box {
+      width: 340px; height: 340px; margin: 20px auto;
+      border: 2px solid #ccc; display: flex; align-items: center; justify-content: center;
+    }
+    img { width: 300px; height: 300px; image-rendering: pixelated; }
+    @media print { p, h1 { display: none; } .marker-box { border: none; } }
+  </style>
+</head>
+<body>
+  <h1>🖨️ พิมพ์หน้านี้ แล้วเล็งกล้องของแอปไปที่กรอบสีดำ</h1>
+  <p>Print this page (Ctrl/Cmd + P) and point the app's camera at the black square.</p>
+
+  <div class="marker-box">
+    <!-- Official AR.js Hiro marker (ต้องต่อเน็ตตอนพิมพ์ครั้งแรก) -->
+    <img
+      src="https://raw.githack.com/AR-js-org/AR.js/master/data/images/hiro.png"
+      alt="Hiro marker"
+      onerror="this.parentNode.innerHTML='ต่ออินเทอร์เน็ตแล้วโหลดหน้านี้ใหม่ เพื่อให้รูปมาร์กเกอร์แสดง / Reload online to load the marker image.'" />
+  </div>
+
+  <p>เคล็ดลับ: พิมพ์บนกระดาษด้าน แสงสว่างพอ ไม่สะท้อน จะจับภาพได้ดีที่สุด</p>
+</body>
+</html>

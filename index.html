@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- viewport-fit=cover + user-scalable=no : เต็มจอ ป้องกันการซูมโดยเด็ก -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>AR Magic English Safari 🦁</title>
+
+  <!-- ===== Our stylesheet (สไตล์ UI สำหรับเด็ก) ===== -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!--
+    ===== A-Frame v1.2.0 + AR.js =====
+    Loaded from CDN. Both are free & work on GitHub Pages.
+    (โหลดจาก CDN ฟรี ใช้กับ GitHub Pages ได้เลย)
+    IMPORTANT: A-Frame MUST load before AR.js.
+  -->
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar.js"></script>
+
+  <!--
+    ===== Our data + logic =====
+    vocabulary.js first (defines window.ACTIVE_WORD),
+    then app.js which uses it. app.js is 'defer' so it runs
+    after the DOM (and the <a-scene>) is parsed.
+  -->
+  <script src="config/vocabulary.js"></script>
+  <script src="app.js" defer></script>
+</head>
+
+<body>
+
+  <!-- =========================================================
+       1) AR SCENE  (ฉาก AR + กล้อง)
+       - embedded    : render inside the page, not fullscreen VR
+       - arjs        : enable AR.js; sourceType webcam = ใช้กล้องหลัง
+       - vr-mode-ui  : hide the default VR goggles button
+       ========================================================= -->
+  <a-scene
+    embedded
+    vr-mode-ui="enabled: false"
+    renderer="antialias: true; alpha: true; precision: mediump; logarithmicDepthBuffer: true;"
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; trackingMethod: best;">
+
+    <!-- Preload assets so first appearance isn't laggy (ตั้งค่าโหลดล่วงหน้า) -->
+    <a-assets timeout="8000">
+      <!-- The 3D model is injected by app.js only if the file exists,
+           to avoid a hard 404 blocking the scene. -->
+    </a-assets>
+
+    <!-- ===== HIRO MARKER (มาร์กเกอร์ Hiro) =====
+         Print the Hiro marker and point the camera at it.
+         Everything inside appears "on top of" the marker. -->
+    <a-marker id="hiro-marker" preset="hiro" smooth="true" smoothCount="8" raycaster="objects: none">
+
+      <!-- 3D PLACEHOLDER BOX (กล่องตัวแทนโมเดล)
+           Uses the vocabulary fallbackColor. app.js may hide this
+           and swap in a real .glb model if available. -->
+      <a-box
+        id="animal-box"
+        position="0 0.5 0"
+        rotation="0 45 0"
+        scale="1 1 1"
+        color="#FF7043"
+        shadow>
+        <!-- Gentle idle spin so it feels alive (หมุนเบา ๆ ให้ดูมีชีวิต) -->
+        <a-animation
+          attribute="rotation"
+          to="0 405 0"
+          dur="8000"
+          easing="linear"
+          repeat="indefinite"></a-animation>
+      </a-box>
+
+      <!-- 3D FLOATING TEXT (ข้อความ 3 มิติลอยอยู่เหนือกล่อง)
+           The word label. app.js sets 'value' from ACTIVE_WORD. -->
+      <a-text
+        id="animal-label"
+        value="Cat"
+        align="center"
+        position="0 1.4 0"
+        rotation="0 0 0"
+        width="4"
+        color="#FFFFFF"
+        stroke="black"
+        stroke-width="0.04"
+        geometry="primitive: plane; width: 0"
+        look-at="[camera]"></a-text>
+
+    </a-marker>
+
+    <!-- The AR camera (กล้องสำหรับ AR) -->
+    <a-entity camera></a-entity>
+  </a-scene>
+
+
+  <!-- =========================================================
+       2) UI OVERLAY  (ปุ่มควบคุมทับบนกล้อง)
+       Anchored to the bottom. Big, colorful, emoji buttons.
+       ========================================================= -->
+  <div id="ui-overlay">
+
+    <!-- Small status hint shown to the guiding parent (คำแนะนำ) -->
+    <div id="status-hint">Point the camera at the Hiro marker 🔍<br />เล็งกล้องไปที่การ์ด Hiro</div>
+
+    <div id="button-bar">
+      <!-- SPEAK button: microphone reward game (ปุ่มพูด/ตะโกน) -->
+      <button id="btn-speak" class="kid-btn" type="button" aria-label="Speak">
+        <span class="btn-emoji">🎤</span>
+        <span class="btn-label">Speak</span>
+      </button>
+
+      <!-- WRITE button: opens the tracing canvas (ปุ่มเขียน) -->
+      <button id="btn-write" class="kid-btn" type="button" aria-label="Write">
+        <span class="btn-emoji">✍️</span>
+        <span class="btn-label">Write</span>
+      </button>
+    </div>
+  </div>
+
+
+  <!-- =========================================================
+       3) WRITING MINIGAME MODAL  (ป็อปอัปฝึกเขียน — ซ่อนไว้)
+       Hidden by default (.hidden). Shown when Write is pressed.
+       ========================================================= -->
+  <div id="write-modal" class="hidden" aria-hidden="true">
+    <div id="write-card">
+      <h2 id="write-title">Trace the letter! ✏️<br /><small>ลากเส้นตามตัวอักษร</small></h2>
+
+      <!-- The drawing surface (พื้นที่วาด). Size is set in JS to match DPR. -->
+      <canvas id="write-canvas" width="320" height="320"></canvas>
+
+      <div id="write-actions">
+        <!-- Clear/redo the tracing (ล้างเส้น) -->
+        <button id="btn-clear" class="kid-btn small" type="button">
+          <span class="btn-emoji">🧽</span><span class="btn-label">Clear</span>
+        </button>
+        <!-- Close and return to AR (ปิดกลับสู่ AR) -->
+        <button id="btn-close-write" class="kid-btn small close" type="button">
+          <span class="btn-emoji">✅</span><span class="btn-label">Done</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
