@@ -35,6 +35,7 @@ const CATEGORIES = {
   nature:  { id: "nature",  label: "Nature",  thai: "ธรรมชาติ", emoji: "🌳", color: "#66BB6A" },
   colors:  { id: "colors",  label: "Colors",  thai: "สี",      emoji: "🎨", color: "#AB47BC" },
   numbers: { id: "numbers", label: "Numbers", thai: "ตัวเลข",  emoji: "🔢", color: "#29B6F6" },
+  shapes:  { id: "shapes",  label: "Shapes",  thai: "รูปทรง",  emoji: "🔷", color: "#26A69A" },
 };
 
 // ---- Words (คำศัพท์) — ordered easy → richer ----
@@ -156,6 +157,33 @@ const WORDS = [
     id: "five", word: "Five", letter: "5", emoji: "5️⃣", category: "numbers",
     thai: "ห้า", phonics: "fai-v", sentence: "I have five fingers.",
     sentenceThai: "ฉันมีห้านิ้ว", color: "#AB47BC",
+  },
+
+  // ===== SHAPES (รูปทรง) =====
+  {
+    id: "circle", word: "Circle", letter: "C", emoji: "⭕", category: "shapes",
+    thai: "วงกลม", phonics: "sur", sentence: "The sun is a circle.",
+    sentenceThai: "พระอาทิตย์เป็นวงกลม", color: "#EF5350",
+  },
+  {
+    id: "square", word: "Square", letter: "S", emoji: "🟦", category: "shapes",
+    thai: "สี่เหลี่ยม", phonics: "skw", sentence: "A window is a square.",
+    sentenceThai: "หน้าต่างเป็นสี่เหลี่ยม", color: "#42A5F5",
+  },
+  {
+    id: "triangle", word: "Triangle", letter: "T", emoji: "🔺", category: "shapes",
+    thai: "สามเหลี่ยม", phonics: "try", sentence: "The roof is a triangle.",
+    sentenceThai: "หลังคาเป็นสามเหลี่ยม", color: "#EF5350",
+  },
+  {
+    id: "star", word: "Star", letter: "S", emoji: "⭐", category: "shapes",
+    thai: "ดาว", phonics: "star", sentence: "The star is in the sky.",
+    sentenceThai: "ดาวอยู่บนท้องฟ้า", color: "#FFC107",
+  },
+  {
+    id: "heart", word: "Heart", letter: "H", emoji: "❤️", category: "shapes",
+    thai: "หัวใจ", phonics: "hart", sentence: "I love you, heart.",
+    sentenceThai: "หัวใจ ฉันรักเธอ", color: "#EC407A",
   },
 ];
 

@@ -31,12 +31,12 @@ No frameworks, no build step, works offline as an installable app (PWA).
 
 ## 📚 Curriculum (หลักสูตร)
 
-21 words across 5 categories, each with emoji character, Thai meaning, phonic sound and
+26 words across 6 categories, each with emoji character, Thai meaning, phonic sound and
 an example sentence. Edit / extend in [`config/vocabulary.js`](config/vocabulary.js).
 
-| Animals 🐾 | Food 🍎 | Nature 🌳 | Colors 🎨 | Numbers 🔢 |
-|---|---|---|---|---|
-| Cat, Dog, Bird, Fish, Lion, Elephant | Apple, Banana, Egg | Sun, Moon, Tree | Red, Blue, Green, Yellow | One–Five (trace the digit) |
+| Animals 🐾 | Food 🍎 | Nature 🌳 | Colors 🎨 | Numbers 🔢 | Shapes 🔷 |
+|---|---|---|---|---|---|
+| Cat, Dog, Bird, Fish, Lion, Elephant | Apple, Banana, Egg | Sun, Moon, Tree | Red, Blue, Green, Yellow | One–Five (trace the digit) | Circle, Square, Triangle, Star, Heart |
 
 ---
 
