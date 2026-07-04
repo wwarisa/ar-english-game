@@ -32,7 +32,7 @@
      ========================================================== */
   const Store = (function () {
     const KEY = "safari.v2";
-    let data = { progress: {}, sound: true };
+    let data = { progress: {}, sound: true, quizBest: 0 };
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) data = Object.assign(data, JSON.parse(raw));
@@ -58,8 +58,11 @@
     const totalStars = () => WORDS.reduce((s, w) => s + starsFor(w.id), 0);
     const isSound = () => data.sound;
     function toggleSound() { data.sound = !data.sound; save(); return data.sound; }
+    const quizBest = () => data.quizBest || 0;
+    function setQuizBest(s) { if (s > (data.quizBest||0)) { data.quizBest = s; save(); } return data.quizBest; }
+    function reset() { data = { progress: {}, sound: data.sound, quizBest: 0 }; save(); }
 
-    return { wordProgress, complete, starsFor, totalStars, isSound, toggleSound };
+    return { wordProgress, complete, starsFor, totalStars, isSound, toggleSound, quizBest, setQuizBest, reset };
   })();
 
   /* ==========================================================
@@ -474,6 +477,93 @@
   })();
 
   /* ==========================================================
+     QUIZ — picture matching mini-game (เกมทายคำ)
+     "Find the CAT!" → tap the right emoji. Reinforces learning.
+     ========================================================== */
+  const Quiz = (function () {
+    const ROUNDS = 5, CHOICES = 4;
+    let queue = [], idx = 0, score = 0, target = null, locked = false;
+    const elTarget = $("#quiz-target"), elThai = $("#quiz-target-thai"),
+          elChoices = $("#quiz-choices"), elProg = $("#quiz-progress"), elScore = $("#quiz-score");
+
+    function shuffle(a) { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+    function start() {
+      Sfx.play("tap");
+      queue = shuffle(WORDS).slice(0, ROUNDS);
+      idx = 0; score = 0; updateHud();
+      Router.show("screen-quiz");
+      setTimeout(question, 350);
+    }
+    function updateHud() {
+      elProg.textContent = `Q ${Math.min(idx+1,ROUNDS)} / ${ROUNDS}`;
+      elScore.textContent = `⭐ ${score}`;
+    }
+    function question() {
+      locked = false;
+      target = queue[idx];
+      elTarget.textContent = target.word;
+      elThai.textContent = target.thai;
+      // distractors: other words (ตัวเลือกลวงจากคำอื่น)
+      const others = shuffle(WORDS.filter((w) => w.id !== target.id)).slice(0, CHOICES-1);
+      const options = shuffle(others.concat(target));
+      elChoices.innerHTML = "";
+      options.forEach((w) => {
+        const b = document.createElement("button");
+        b.className = "quiz-choice"; b.textContent = w.emoji; b.dataset.id = w.id;
+        b.onclick = () => choose(w, b);
+        elChoices.appendChild(b);
+      });
+      updateHud();
+      ask();
+    }
+    function ask() { Voice.speak(`Find the ${target.word}`, { rate: 0.8 }); }
+
+    function choose(w, btn) {
+      if (locked) return;
+      if (w.id === target.id) {
+        locked = true;
+        btn.classList.add("correct");
+        $$(".quiz-choice", elChoices).forEach((c) => { if (c !== btn) c.classList.add("dim"); });
+        score++; updateHud();
+        Fx.burst(90); Sfx.play("star");
+        Voice.speak(`Yes! ${target.word}!`, { rate: 0.8 });
+        setTimeout(next, 1300);
+      } else {
+        // gentle: shake, keep trying (ผิดแบบใจดี ให้ลองใหม่)
+        btn.classList.add("wrong"); Sfx.play("pop");
+        btn.classList.add("dim");
+        setTimeout(() => btn.classList.remove("wrong"), 400);
+        Voice.speak("Try again", { rate: 0.85 });
+      }
+    }
+    function next() {
+      idx++;
+      if (idx >= ROUNDS) return finish();
+      question();
+    }
+    function finish() {
+      const best = Store.setQuizBest(score);
+      const perfect = score === ROUNDS;
+      $("#quiz-result-emoji").textContent = perfect ? "🏆" : score >= 3 ? "🌟" : "💪";
+      $("#quiz-result-title").textContent = perfect ? "Perfect! สุดยอด!" : score >= 3 ? "Well done! เก่งมาก!" : "Good try! ลองอีกครั้ง!";
+      $("#quiz-result-score").textContent = `⭐ ${score} / ${ROUNDS}`;
+      $("#quiz-result").classList.remove("hidden");
+      if (perfect) { Fx.burst(160); Sfx.play("win"); } else { Fx.burst(80); Sfx.play("star"); }
+      Home.refreshWallet();
+    }
+
+    function init() {
+      $("#btn-quiz").onclick = start;
+      $("#quiz-replay").onclick = () => { Sfx.play("tap"); ask(); };
+      $("#btn-quiz-back").onclick = () => { Sfx.play("tap"); Router.show("screen-home"); };
+      $("#quiz-again").onclick = () => { $("#quiz-result").classList.add("hidden"); start(); };
+      $("#quiz-home").onclick = () => { $("#quiz-result").classList.add("hidden"); Router.show("screen-home"); Home.refreshWallet(); };
+    }
+    return { init };
+  })();
+
+  /* ==========================================================
      AR — lazy Hiro-marker camera scene (โหมด AR)
      Loads A-Frame + AR.js only when needed (performance).
      Pre-checks the camera to avoid AR.js's ugly error alert.
@@ -585,6 +675,7 @@
     Home.init();
     Speak.init();
     Write.init();
+    Quiz.init();
     AR.init();
 
     // Register service worker for offline/install (ลงทะเบียน SW เพื่อออฟไลน์)

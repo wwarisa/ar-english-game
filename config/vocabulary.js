@@ -33,6 +33,8 @@ const CATEGORIES = {
   animals: { id: "animals", label: "Animals", thai: "สัตว์",   emoji: "🐾", color: "#FF8A65" },
   food:    { id: "food",    label: "Food",    thai: "อาหาร",   emoji: "🍎", color: "#EF5350" },
   nature:  { id: "nature",  label: "Nature",  thai: "ธรรมชาติ", emoji: "🌳", color: "#66BB6A" },
+  colors:  { id: "colors",  label: "Colors",  thai: "สี",      emoji: "🎨", color: "#AB47BC" },
+  numbers: { id: "numbers", label: "Numbers", thai: "ตัวเลข",  emoji: "🔢", color: "#29B6F6" },
 };
 
 // ---- Words (คำศัพท์) — ordered easy → richer ----
@@ -105,6 +107,55 @@ const WORDS = [
     id: "tree", word: "Tree", letter: "T", emoji: "🌳", category: "nature",
     thai: "ต้นไม้", phonics: "tuh", sentence: "The tree is tall.",
     sentenceThai: "ต้นไม้สูง", color: "#66BB6A",
+  },
+
+  // ===== COLORS (สี) =====
+  {
+    id: "red", word: "Red", letter: "R", emoji: "🔴", category: "colors",
+    thai: "สีแดง", phonics: "ruh", sentence: "The apple is red.",
+    sentenceThai: "แอปเปิลสีแดง", color: "#EF5350",
+  },
+  {
+    id: "blue", word: "Blue", letter: "B", emoji: "🔵", category: "colors",
+    thai: "สีน้ำเงิน", phonics: "buh", sentence: "The sky is blue.",
+    sentenceThai: "ท้องฟ้าสีน้ำเงิน", color: "#2196F3",
+  },
+  {
+    id: "green", word: "Green", letter: "G", emoji: "🟢", category: "colors",
+    thai: "สีเขียว", phonics: "guh", sentence: "The grass is green.",
+    sentenceThai: "หญ้าสีเขียว", color: "#66BB6A",
+  },
+  {
+    id: "yellow", word: "Yellow", letter: "Y", emoji: "🟡", category: "colors",
+    thai: "สีเหลือง", phonics: "yuh", sentence: "The sun is yellow.",
+    sentenceThai: "พระอาทิตย์สีเหลือง", color: "#FDD835",
+  },
+
+  // ===== NUMBERS (ตัวเลข) — trace the DIGIT (ฝึกเขียนตัวเลข) =====
+  {
+    id: "one", word: "One", letter: "1", emoji: "1️⃣", category: "numbers",
+    thai: "หนึ่ง", phonics: "wun", sentence: "I have one nose.",
+    sentenceThai: "ฉันมีจมูกหนึ่งอัน", color: "#29B6F6",
+  },
+  {
+    id: "two", word: "Two", letter: "2", emoji: "2️⃣", category: "numbers",
+    thai: "สอง", phonics: "too", sentence: "I have two eyes.",
+    sentenceThai: "ฉันมีตาสองข้าง", color: "#26C6DA",
+  },
+  {
+    id: "three", word: "Three", letter: "3", emoji: "3️⃣", category: "numbers",
+    thai: "สาม", phonics: "three", sentence: "I see three stars.",
+    sentenceThai: "ฉันเห็นดาวสามดวง", color: "#5C6BC0",
+  },
+  {
+    id: "four", word: "Four", letter: "4", emoji: "4️⃣", category: "numbers",
+    thai: "สี่", phonics: "for", sentence: "A cat has four legs.",
+    sentenceThai: "แมวมีสี่ขา", color: "#7E57C2",
+  },
+  {
+    id: "five", word: "Five", letter: "5", emoji: "5️⃣", category: "numbers",
+    thai: "ห้า", phonics: "fai-v", sentence: "I have five fingers.",
+    sentenceThai: "ฉันมีห้านิ้ว", color: "#AB47BC",
   },
 ];
 

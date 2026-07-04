@@ -58,6 +58,13 @@
       </div>
     </header>
 
+    <!-- Quiz banner (ปุ่มเข้าเกมทายคำ) -->
+    <button id="btn-quiz" class="quiz-banner" type="button">
+      <span class="quiz-banner-emoji">🎯</span>
+      <span class="quiz-banner-text">Play the Quiz Game!<small>เกมทายคำ · หาให้เจอ!</small></span>
+      <span class="quiz-banner-go">▶</span>
+    </button>
+
     <!-- Category chips (แถบเลือกหมวด) -->
     <nav id="category-bar" class="category-bar" aria-label="Categories"></nav>
 
@@ -108,7 +115,40 @@
     </div>
   </section>
 
+  <!-- ========== 4) QUIZ — picture matching game (เกมทายคำ) ========== -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-stage">
+      <header class="play-header">
+        <button id="btn-quiz-back" class="icon-btn light" type="button" aria-label="Back">⬅️</button>
+        <div id="quiz-progress" class="quiz-progress">Q 1 / 5</div>
+        <div id="quiz-score" class="quiz-score">⭐ 0</div>
+      </header>
+
+      <div class="quiz-prompt-zone">
+        <div class="quiz-ask">Find…</div>
+        <div id="quiz-target" class="quiz-target">Cat</div>
+        <div id="quiz-target-thai" class="quiz-target-thai">แมว</div>
+        <button id="quiz-replay" class="pill-btn grey small-pill" type="button">🔊 Again</button>
+      </div>
+
+      <div id="quiz-choices" class="quiz-choices"></div>
+    </div>
+  </section>
+
 </div><!-- /#app -->
+
+<!-- QUIZ RESULT overlay (สรุปผลเกมทายคำ) -->
+<div id="quiz-result" class="overlay hidden" aria-hidden="true">
+  <div class="overlay-card">
+    <div id="quiz-result-emoji" style="font-size:72px">🏆</div>
+    <h2 class="overlay-title" id="quiz-result-title">Great job!</h2>
+    <div id="quiz-result-score" class="quiz-result-score">⭐ 5 / 5</div>
+    <div class="overlay-actions">
+      <button id="quiz-again" class="pill-btn green" type="button">🔁 Again</button>
+      <button id="quiz-home" class="pill-btn grey" type="button">🏠 Home</button>
+    </div>
+  </div>
+</div>
 
 
 <!-- =========================================================

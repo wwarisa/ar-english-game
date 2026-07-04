@@ -15,6 +15,8 @@ No frameworks, no build step, works offline as an installable app (PWA).
 - 🔊 **Real spoken English** — every word & sentence is pronounced aloud using the
   browser's Speech Synthesis. No audio files needed. (ออกเสียงจริงด้วย TTS)
 - 🎮 **3 learning activities per word** — Listen 👂, Speak 🎤, Write ✍️.
+- 🎯 **Quiz game** — "Find the Cat!" picture-matching to reinforce learning; 5 rounds,
+  friendly retries, a results screen with a best-score record. (เกมทายคำ)
 - ⭐ **Stars & progress** — kids earn stars, saved on the device; complete a word to
   win a 🏆. Confetti + happy chimes reward every success. (ระบบดาว + บันทึกความคืบหน้า)
 - 📱 **Works everywhere, no setup** — a beautiful *Screen Mode* plays instantly with
@@ -26,12 +28,12 @@ No frameworks, no build step, works offline as an installable app (PWA).
 
 ## 📚 Curriculum (หลักสูตร)
 
-12 words across 3 categories, each with emoji character, Thai meaning, phonic sound and
+21 words across 5 categories, each with emoji character, Thai meaning, phonic sound and
 an example sentence. Edit / extend in [`config/vocabulary.js`](config/vocabulary.js).
 
-| Animals 🐾 | Food 🍎 | Nature 🌳 |
-|---|---|---|
-| Cat, Dog, Bird, Fish, Lion, Elephant | Apple, Banana, Egg | Sun, Moon, Tree |
+| Animals 🐾 | Food 🍎 | Nature 🌳 | Colors 🎨 | Numbers 🔢 |
+|---|---|---|---|---|
+| Cat, Dog, Bird, Fish, Lion, Elephant | Apple, Banana, Egg | Sun, Moon, Tree | Red, Blue, Green, Yellow | One–Five (trace the digit) |
 
 ---
 
