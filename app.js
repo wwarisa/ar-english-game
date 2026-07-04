@@ -360,6 +360,62 @@
   }
 
   /* ==========================================================
+     WATCH & LEARN — hands-free flashcards (ดูและเรียนแบบไม่ต้องแตะ)
+     Auto-cycles every word, speaking each aloud. Great for the
+     youngest learners / passive exposure.
+     ========================================================== */
+  const Watch = (function () {
+    const DWELL = 4800; // ms per card (เวลาแสดงต่อคำ)
+    let list = [], idx = 0, playing = true, timer = null;
+    const stage = $("#watch-stage"), charEl = $("#watch-char"), label = $("#watch-label"),
+          countEl = $("#watch-count"), catEl = $("#watch-cat"), playBtn = $("#watch-play");
+
+    function start() {
+      Sfx.play("tap");
+      list = WORDS.slice();
+      idx = 0; playing = true; updatePlayBtn();
+      Router.show("screen-watch");
+      setTimeout(render, 350);
+    }
+    function render() {
+      const w = list[idx];
+      charEl.textContent = w.emoji;
+      label.textContent = `${w.word} · ${w.thai}`;
+      countEl.textContent = `${idx + 1} / ${list.length}`;
+      const cat = CATEGORIES[w.category]; catEl.textContent = cat ? cat.emoji : "✨";
+      stage.style.setProperty("--stage-1", tint(w.color, 0.55));
+      stage.style.setProperty("--stage-2", w.color);
+      charEl.classList.remove("bounce"); void charEl.offsetWidth; charEl.classList.add("bounce");
+      Voice.teachWord(w);
+      schedule();
+    }
+    function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(next, DWELL); }
+    function next() { idx = (idx + 1) % list.length; render(); }
+    function prev() { idx = (idx - 1 + list.length) % list.length; render(); }
+    function togglePlay() {
+      playing = !playing; updatePlayBtn();
+      if (playing) schedule(); else { clearTimeout(timer); try { speechSynthesis.cancel(); } catch (e) {} }
+    }
+    function updatePlayBtn() {
+      playBtn.querySelector(".act-emoji").textContent = playing ? "⏸️" : "▶️";
+      playBtn.querySelector(".act-label").textContent = playing ? "Pause" : "Play";
+    }
+    function close() {
+      playing = false; clearTimeout(timer); try { speechSynthesis.cancel(); } catch (e) {}
+      Router.show("screen-home"); Home.refreshWallet();
+    }
+    function init() {
+      $("#btn-watch").onclick = start;
+      $("#btn-watch-back").onclick = () => { Sfx.play("tap"); close(); };
+      $("#watch-next").onclick = () => { Sfx.play("tap"); next(); };
+      $("#watch-prev").onclick = () => { Sfx.play("tap"); prev(); };
+      $("#watch-play").onclick = () => { Sfx.play("tap"); togglePlay(); };
+      charEl.onclick = () => Voice.teachWord(list[idx]);
+    }
+    return { init };
+  })();
+
+  /* ==========================================================
      SPEAK — microphone reward (เกมพูด)
      Web Speech recognition (says the word) + volume fallback.
      ========================================================== */
@@ -778,6 +834,7 @@
     Speak.init();
     Write.init();
     Quiz.init();
+    Watch.init();
     Parents.init();
     AR.init();
 

@@ -170,19 +170,22 @@ img { max-width: 100%; }
 
 .home-footer { text-align: center; padding: 8px 12px calc(env(safe-area-inset-bottom) + 12px); font-size: 12px; color: var(--ink-soft); }
 
-/* Quiz banner (ปุ่มเข้าเกมทายคำ) */
-.quiz-banner {
-  margin: 4px 18px 8px; display: flex; align-items: center; gap: 12px;
-  padding: 14px 18px; border-radius: 24px; text-align: left;
-  background: linear-gradient(120deg, #7E57C2, #5C6BC0);
-  box-shadow: 0 6px 0 #4527A0, var(--shadow); color: #fff;
+/* Home action banners (ปุ่มโหมดพิเศษ: Watch / Quiz) */
+.home-banners { display: flex; gap: 12px; margin: 4px 18px 8px; }
+.home-banner {
+  flex: 1; display: flex; align-items: center; gap: 10px;
+  padding: 13px 14px; border-radius: 22px; text-align: left; color: #fff;
   transition: transform .08s, box-shadow .08s;
 }
-.quiz-banner:active { transform: translateY(4px); box-shadow: 0 2px 0 #4527A0, var(--shadow); }
-.quiz-banner-emoji { font-size: 34px; }
-.quiz-banner-text { flex: 1; font-size: 19px; font-weight: 800; line-height: 1.1; }
-.quiz-banner-text small { display: block; font-size: 13px; font-weight: 600; opacity: .9; }
-.quiz-banner-go { font-size: 20px; opacity: .9; }
+.home-banner:active { transform: translateY(4px); }
+.home-banner.watch { background: linear-gradient(120deg, #26A69A, #00897B); box-shadow: 0 6px 0 #00695C, var(--shadow); }
+.home-banner.watch:active { box-shadow: 0 2px 0 #00695C, var(--shadow); }
+.home-banner.quiz  { background: linear-gradient(120deg, #7E57C2, #5C6BC0); box-shadow: 0 6px 0 #4527A0, var(--shadow); }
+.home-banner.quiz:active  { box-shadow: 0 2px 0 #4527A0, var(--shadow); }
+.home-banner-emoji { font-size: 30px; }
+.home-banner-text { flex: 1; font-size: 17px; font-weight: 800; line-height: 1.05; }
+.home-banner-text small { display: block; font-size: 12px; font-weight: 600; opacity: .9; }
+@media (max-width: 360px) { .home-banner-text { font-size: 15px; } .home-banner-emoji { font-size: 26px; } }
 
 .parents-link {
   display: inline-block; margin-bottom: 6px; padding: 8px 16px; border-radius: 18px;

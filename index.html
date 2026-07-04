@@ -60,12 +60,17 @@
       </div>
     </header>
 
-    <!-- Quiz banner (ปุ่มเข้าเกมทายคำ) -->
-    <button id="btn-quiz" class="quiz-banner" type="button">
-      <span class="quiz-banner-emoji">🎯</span>
-      <span class="quiz-banner-text">Play the Quiz Game!<small>เกมทายคำ · หาให้เจอ!</small></span>
-      <span class="quiz-banner-go">▶</span>
-    </button>
+    <!-- Home action banners (ปุ่มโหมดพิเศษ) -->
+    <div class="home-banners">
+      <button id="btn-watch" class="home-banner watch" type="button">
+        <span class="home-banner-emoji">📺</span>
+        <span class="home-banner-text">Watch &amp; Learn<small>ดูและเรียน</small></span>
+      </button>
+      <button id="btn-quiz" class="home-banner quiz" type="button">
+        <span class="home-banner-emoji">🎯</span>
+        <span class="home-banner-text">Quiz Game<small>เกมทายคำ</small></span>
+      </button>
+    </div>
 
     <!-- Category chips (แถบเลือกหมวด) -->
     <nav id="category-bar" class="category-bar" aria-label="Categories"></nav>
@@ -114,6 +119,26 @@
         <button id="act-ar" class="act-btn" type="button">
           <span class="act-emoji">📷</span><span class="act-label">AR</span>
         </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 3b) WATCH & LEARN — hands-free flashcards (ดูและเรียน) ========== -->
+  <section id="screen-watch" class="screen">
+    <div id="watch-stage" class="play-stage">
+      <header class="play-header">
+        <button id="btn-watch-back" class="icon-btn light" type="button" aria-label="Back">⬅️</button>
+        <div id="watch-count" class="quiz-progress">1 / 36</div>
+        <div id="watch-cat" class="quiz-score">✨</div>
+      </header>
+      <div class="character-zone">
+        <div id="watch-char" class="character" role="button" aria-label="Tap to hear">🐱</div>
+        <div id="watch-label" class="speech-bubble show">Cat · แมว</div>
+      </div>
+      <div class="activity-bar">
+        <button id="watch-prev" class="act-btn" type="button"><span class="act-emoji">⏮️</span><span class="act-label">Back</span></button>
+        <button id="watch-play" class="act-btn" type="button"><span class="act-emoji">⏸️</span><span class="act-label">Pause</span></button>
+        <button id="watch-next" class="act-btn" type="button"><span class="act-emoji">⏭️</span><span class="act-label">Next</span></button>
       </div>
     </div>
   </section>

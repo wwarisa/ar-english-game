@@ -36,6 +36,8 @@ const CATEGORIES = {
   colors:  { id: "colors",  label: "Colors",  thai: "สี",      emoji: "🎨", color: "#AB47BC" },
   numbers: { id: "numbers", label: "Numbers", thai: "ตัวเลข",  emoji: "🔢", color: "#29B6F6" },
   shapes:  { id: "shapes",  label: "Shapes",  thai: "รูปทรง",  emoji: "🔷", color: "#26A69A" },
+  body:    { id: "body",    label: "Body",    thai: "ร่างกาย", emoji: "🖐️", color: "#FF7043" },
+  vehicles:{ id: "vehicles",label: "Vehicles",thai: "ยานพาหนะ", emoji: "🚗", color: "#5C6BC0" },
 };
 
 // ---- Words (คำศัพท์) — ordered easy → richer ----
@@ -184,6 +186,60 @@ const WORDS = [
     id: "heart", word: "Heart", letter: "H", emoji: "❤️", category: "shapes",
     thai: "หัวใจ", phonics: "hart", sentence: "I love you, heart.",
     sentenceThai: "หัวใจ ฉันรักเธอ", color: "#EC407A",
+  },
+
+  // ===== BODY (ร่างกาย) =====
+  {
+    id: "hand", word: "Hand", letter: "H", emoji: "✋", category: "body",
+    thai: "มือ", phonics: "huh", sentence: "I clap my hands.",
+    sentenceThai: "ฉันตบมือ", color: "#FFB74D",
+  },
+  {
+    id: "eye", word: "Eye", letter: "E", emoji: "👁️", category: "body",
+    thai: "ตา", phonics: "eye", sentence: "I see with my eyes.",
+    sentenceThai: "ฉันมองด้วยตา", color: "#42A5F5",
+  },
+  {
+    id: "ear", word: "Ear", letter: "E", emoji: "👂", category: "body",
+    thai: "หู", phonics: "ear", sentence: "I hear with my ears.",
+    sentenceThai: "ฉันฟังด้วยหู", color: "#FF8A65",
+  },
+  {
+    id: "nose", word: "Nose", letter: "N", emoji: "👃", category: "body",
+    thai: "จมูก", phonics: "nuh", sentence: "I smell with my nose.",
+    sentenceThai: "ฉันดมด้วยจมูก", color: "#F48FB1",
+  },
+  {
+    id: "mouth", word: "Mouth", letter: "M", emoji: "👄", category: "body",
+    thai: "ปาก", phonics: "muh", sentence: "I eat with my mouth.",
+    sentenceThai: "ฉันกินด้วยปาก", color: "#EC407A",
+  },
+
+  // ===== VEHICLES (ยานพาหนะ) =====
+  {
+    id: "car", word: "Car", letter: "C", emoji: "🚗", category: "vehicles",
+    thai: "รถยนต์", phonics: "kuh", sentence: "The car goes fast.",
+    sentenceThai: "รถวิ่งเร็ว", color: "#EF5350",
+  },
+  {
+    id: "bus", word: "Bus", letter: "B", emoji: "🚌", category: "vehicles",
+    thai: "รถบัส", phonics: "buh", sentence: "The bus is big.",
+    sentenceThai: "รถบัสคันใหญ่", color: "#FFA726",
+  },
+  {
+    id: "plane", word: "Plane", letter: "P", emoji: "✈️", category: "vehicles",
+    thai: "เครื่องบิน", phonics: "puh", sentence: "The plane can fly.",
+    sentenceThai: "เครื่องบินบินได้", color: "#42A5F5",
+  },
+  {
+    id: "boat", word: "Boat", letter: "B", emoji: "⛵", category: "vehicles",
+    thai: "เรือ", phonics: "buh", sentence: "The boat is on the water.",
+    sentenceThai: "เรืออยู่บนน้ำ", color: "#26C6DA",
+  },
+  {
+    id: "train", word: "Train", letter: "T", emoji: "🚂", category: "vehicles",
+    thai: "รถไฟ", phonics: "truh", sentence: "The train is very long.",
+    sentenceThai: "รถไฟยาวมาก", color: "#8D6E63",
   },
 ];
 
