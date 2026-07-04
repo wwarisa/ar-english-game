@@ -19,6 +19,9 @@ No frameworks, no build step, works offline as an installable app (PWA).
   friendly retries, a results screen with a best-score record. (เกมทายคำ)
 - ⭐ **Stars & progress** — kids earn stars, saved on the device; complete a word to
   win a 🏆. Confetti + happy chimes reward every success. (ระบบดาว + บันทึกความคืบหน้า)
+- 🔥 **Daily streak & achievement badges** — gentle retention that rewards coming back.
+- 👪 **Parent Zone** (behind a parental gate) — progress dashboard, per-category bars,
+  achievements, usage tips, and a reset button. (โซนผู้ปกครอง มีด่านกันเด็กกดเอง)
 - 📱 **Works everywhere, no setup** — a beautiful *Screen Mode* plays instantly with
   **no camera and no printed marker required**. AR (camera) is an optional bonus.
 - 📷 **AR bonus** — point the phone camera at a Hiro marker to see the animal pop up.

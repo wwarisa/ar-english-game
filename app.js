@@ -32,7 +32,7 @@
      ========================================================== */
   const Store = (function () {
     const KEY = "safari.v2";
-    let data = { progress: {}, sound: true, quizBest: 0 };
+    let data = { progress: {}, sound: true, quizBest: 0, streak: 0, lastPlayed: null };
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) data = Object.assign(data, JSON.parse(raw));
@@ -60,9 +60,22 @@
     function toggleSound() { data.sound = !data.sound; save(); return data.sound; }
     const quizBest = () => data.quizBest || 0;
     function setQuizBest(s) { if (s > (data.quizBest||0)) { data.quizBest = s; save(); } return data.quizBest; }
-    function reset() { data = { progress: {}, sound: data.sound, quizBest: 0 }; save(); }
+    function reset() { data = { progress: {}, sound: data.sound, quizBest: 0, streak: 0, lastPlayed: null }; save(); }
 
-    return { wordProgress, complete, starsFor, totalStars, isSound, toggleSound, quizBest, setQuizBest, reset };
+    // Daily streak (สถิติเล่นต่อเนื่องรายวัน)
+    const today = () => new Date().toISOString().slice(0, 10);
+    function touchStreak() {
+      const t = today();
+      if (data.lastPlayed === t) return data.streak;
+      const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+      data.streak = data.lastPlayed === y ? (data.streak || 0) + 1 : 1;
+      data.lastPlayed = t; save();
+      return data.streak;
+    }
+    const streak = () => data.streak || 0;
+
+    return { wordProgress, complete, starsFor, totalStars, isSound, toggleSound,
+             quizBest, setQuizBest, reset, touchStreak, streak };
   })();
 
   /* ==========================================================
@@ -564,6 +577,93 @@
   })();
 
   /* ==========================================================
+     PARENTS — dashboard behind a parental gate (หน้าผู้ปกครอง)
+     ========================================================== */
+  const Parents = (function () {
+    let gateAnswer = 0;
+    const BADGES = [
+      { id:"first",  emoji:"🐣", name:"First Step",  test:(s)=>s.total>=1 },
+      { id:"ten",    emoji:"⭐", name:"10 Stars",    test:(s)=>s.total>=10 },
+      { id:"thirty", emoji:"🌟", name:"30 Stars",    test:(s)=>s.total>=30 },
+      { id:"master", emoji:"🏆", name:"5 Mastered",  test:(s)=>s.mastered>=5 },
+      { id:"quiz",   emoji:"🎯", name:"Quiz Whiz",   test:(s)=>s.quiz>=5 },
+      { id:"streak", emoji:"🔥", name:"3-Day Streak",test:(s)=>s.streak>=3 },
+    ];
+
+    // ---- Parental gate (ด่านผู้ปกครอง) ----
+    function openGate() {
+      Sfx.play("tap");
+      const a = 2 + ((Math.random()*7)|0), b = 2 + ((Math.random()*7)|0);
+      gateAnswer = a + b;
+      $("#gate-q").textContent = `Tap the answer: ${a} + ${b}`;
+      const opts = new Set([gateAnswer]);
+      while (opts.size < 4) opts.add(Math.max(2, gateAnswer + ((Math.random()*7)|0) - 3));
+      const box = $("#gate-choices"); box.innerHTML = "";
+      Array.from(opts).sort(() => Math.random()-0.5).forEach((n) => {
+        const b2 = document.createElement("button"); b2.textContent = n;
+        b2.onclick = () => { if (n === gateAnswer) { close(); openDashboard(); } else { Sfx.play("pop"); openGate(); } };
+        box.appendChild(b2);
+      });
+      $("#parent-gate").classList.remove("hidden");
+    }
+    const close = () => $("#parent-gate").classList.add("hidden");
+
+    function stats() {
+      const total = Store.totalStars();
+      const mastered = WORDS.filter((w) => Store.starsFor(w.id) === 3).length;
+      return { total, mastered, quiz: Store.quizBest(), streak: Store.streak() };
+    }
+
+    function openDashboard() {
+      const s = stats(), max = WORDS.length * 3;
+      $("#p-total-stars").textContent = s.total;
+      $("#p-max-stars").textContent = max;
+      $("#p-bar-fill").style.width = Math.round((s.total/max)*100) + "%";
+      $("#p-words-done").textContent = s.mastered;
+      $("#p-quiz-best").textContent = s.quiz;
+      $("#p-streak").textContent = s.streak;
+
+      // Per-category bars (แถบความคืบหน้าแต่ละหมวด)
+      const box = $("#p-categories"); box.innerHTML = "";
+      Object.values(CATEGORIES).forEach((cat) => {
+        const words = WORDS.filter((w) => w.category === cat.id);
+        const got = words.reduce((n, w) => n + Store.starsFor(w.id), 0);
+        const cmax = words.length * 3, pct = cmax ? Math.round((got/cmax)*100) : 0;
+        const row = document.createElement("div"); row.className = "p-catrow";
+        row.innerHTML = `<span class="cat-ico">${cat.emoji}</span>
+          <span class="cat-name">${cat.label}</span>
+          <span class="cat-bar"><i style="width:${pct}%;background:${cat.color}"></i></span>
+          <span class="cat-num">${got}/${cmax}</span>`;
+        box.appendChild(row);
+      });
+
+      // Badges (เหรียญ)
+      const bb = $("#p-badges"); bb.innerHTML = "";
+      BADGES.forEach((bdg) => {
+        const earned = bdg.test(s);
+        const el = document.createElement("div");
+        el.className = "badge" + (earned ? " earned" : "");
+        el.innerHTML = `<div class="b-emoji">${earned ? bdg.emoji : "🔒"}</div><div class="b-name">${bdg.name}</div>`;
+        bb.appendChild(el);
+      });
+
+      Router.show("screen-parents");
+    }
+
+    function init() {
+      $("#btn-parents").onclick = openGate;
+      $("#gate-cancel").onclick = close;
+      $("#btn-parents-back").onclick = () => { Sfx.play("tap"); Router.show("screen-home"); Home.refreshWallet(); };
+      $("#p-reset").onclick = () => {
+        if (confirm("Reset all progress? · ล้างความคืบหน้าทั้งหมด?")) {
+          Store.reset(); openDashboard(); Home.renderGrid(); Home.refreshWallet();
+        }
+      };
+    }
+    return { init };
+  })();
+
+  /* ==========================================================
      AR — lazy Hiro-marker camera scene (โหมด AR)
      Loads A-Frame + AR.js only when needed (performance).
      Pre-checks the camera to avoid AR.js's ugly error alert.
@@ -650,9 +750,11 @@
      BOOTSTRAP (เริ่มการทำงาน)
      ========================================================== */
   function boot() {
-    // Splash → Home (แตะเริ่ม → ปลดล็อกเสียง)
+    // Splash → Home (แตะเริ่ม → ปลดล็อกเสียง + นับ streak รายวัน)
     $("#btn-start").onclick = () => {
       Voice.prime(); Sfx.ac(); Sfx.play("pop");
+      Store.touchStreak();
+      const sc = $("#streak-count"); if (sc) sc.textContent = Store.streak();
       Router.show("screen-home");
     };
     // Voices may load async; update the loading hint (อัปเดตข้อความโหลด)
@@ -676,6 +778,7 @@
     Speak.init();
     Write.init();
     Quiz.init();
+    Parents.init();
     AR.init();
 
     // Register service worker for offline/install (ลงทะเบียน SW เพื่อออฟไลน์)

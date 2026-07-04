@@ -51,6 +51,8 @@
         <span>English Safari</span>
       </div>
       <div class="home-tools">
+        <!-- Daily streak (สถิติเล่นต่อเนื่อง) -->
+        <div id="streak-chip" class="star-wallet" title="Day streak">🔥 <span id="streak-count">0</span></div>
         <!-- Star wallet (คะแนนดาวสะสม) -->
         <div id="star-wallet" class="star-wallet" title="Stars earned">⭐ <span id="star-count">0</span></div>
         <!-- Sound toggle (เปิด/ปิดเสียง) -->
@@ -72,7 +74,8 @@
     <main id="word-grid" class="word-grid"></main>
 
     <footer class="home-footer">
-      <span>Made with ❤️ for little explorers · เพื่อการเรียนรู้ของหนู ๆ</span>
+      <button id="btn-parents" class="parents-link" type="button">👪 For Parents · สำหรับผู้ปกครอง</button>
+      <span>Made with ❤️ for little explorers</span>
     </footer>
   </section>
 
@@ -135,7 +138,69 @@
     </div>
   </section>
 
+  <!-- ========== 5) PARENTS — dashboard (หน้าผู้ปกครอง) ========== -->
+  <section id="screen-parents" class="screen">
+    <header class="home-header">
+      <div class="home-title"><span class="home-title-emoji">👪</span><span>For Parents</span></div>
+      <button id="btn-parents-back" class="icon-btn" type="button" aria-label="Back">✖️</button>
+    </header>
+    <div class="parents-body">
+      <!-- Overall progress (ความคืบหน้ารวม) -->
+      <div class="p-card">
+        <div class="p-card-title">Overall progress · ความคืบหน้ารวม</div>
+        <div class="p-bigstat"><span id="p-total-stars">0</span> <small>/ <span id="p-max-stars">63</span> ⭐</small></div>
+        <div class="p-bar"><div id="p-bar-fill" class="p-bar-fill"></div></div>
+        <div class="p-substat">
+          <span>🏆 <b id="p-words-done">0</b> words mastered</span>
+          <span>🎯 Quiz best <b id="p-quiz-best">0</b>/5</span>
+          <span>🔥 <b id="p-streak">0</b>-day streak</span>
+        </div>
+      </div>
+
+      <!-- Per-category (แยกตามหมวด) -->
+      <div class="p-card">
+        <div class="p-card-title">By category · แยกหมวด</div>
+        <div id="p-categories"></div>
+      </div>
+
+      <!-- Achievements (เหรียญรางวัล) -->
+      <div class="p-card">
+        <div class="p-card-title">Achievements · เหรียญรางวัล</div>
+        <div id="p-badges" class="p-badges"></div>
+      </div>
+
+      <!-- Tips (คำแนะนำสำหรับผู้ปกครอง) -->
+      <div class="p-card">
+        <div class="p-card-title">How to use · วิธีใช้ให้ได้ผล</div>
+        <ul class="p-tips">
+          <li>🎧 Sit together and repeat each word aloud — hearing + saying builds memory.<br /><small>นั่งเล่นด้วยกัน ออกเสียงตามทุกคำ</small></li>
+          <li>⏱️ Keep sessions short (5–10 min) — little ones learn best in small bursts.<br /><small>เล่นครั้งละสั้น ๆ 5–10 นาที</small></li>
+          <li>👏 Celebrate every try. Praise effort, not just correct answers.<br /><small>ชมความพยายามทุกครั้ง</small></li>
+          <li>📷 Use AR mode as a treat after a phone-free learning session.<br /><small>ใช้โหมด AR เป็นรางวัลพิเศษ</small></li>
+        </ul>
+      </div>
+
+      <!-- Settings (ตั้งค่า) -->
+      <div class="p-card">
+        <div class="p-card-title">Settings · ตั้งค่า</div>
+        <button id="p-reset" class="pill-btn grey" type="button">🗑️ Reset progress · ล้างความคืบหน้า</button>
+      </div>
+      <div class="parents-foot">AR Magic English Safari · v2.1</div>
+    </div>
+  </section>
+
 </div><!-- /#app -->
+
+<!-- PARENTAL GATE (ด่านผู้ปกครอง — กันเด็กกดเอง) -->
+<div id="parent-gate" class="overlay hidden" aria-hidden="true">
+  <div class="overlay-card">
+    <div style="font-size:52px">🔒</div>
+    <h2 class="overlay-title">For grown-ups<br /><small>ยืนยันว่าเป็นผู้ใหญ่</small></h2>
+    <p id="gate-q" class="gate-q">Tap the answer: 3 + 4</p>
+    <div id="gate-choices" class="gate-choices"></div>
+    <button id="gate-cancel" class="pill-btn grey" type="button">Cancel</button>
+  </div>
+</div>
 
 <!-- QUIZ RESULT overlay (สรุปผลเกมทายคำ) -->
 <div id="quiz-result" class="overlay hidden" aria-hidden="true">
