@@ -117,7 +117,7 @@
           <span class="act-emoji">✍️</span><span class="act-label">Write</span>
         </button>
         <button id="act-ar" class="act-btn" type="button">
-          <span class="act-emoji">📷</span><span class="act-label">AR</span>
+          <span class="act-emoji">✋</span><span class="act-label">Hand AR</span>
         </button>
       </div>
     </div>
@@ -265,12 +265,11 @@
      removes it (releasing the camera) when closed.
      ========================================================= -->
 <div id="ar-view" class="ar-view hidden" aria-hidden="true">
-  <div id="ar-scene-host"></div>
+  <video id="ar-video" playsinline muted autoplay></video>
+  <canvas id="ar-canvas" class="ar-canvas"></canvas>
   <div class="ar-hud">
-    <button id="btn-close-ar" class="icon-btn light" type="button" aria-label="Close AR">✖️</button>
-    <div id="ar-hint" class="ar-hint">
-      Point at the Hiro marker 🔍<br />เล็งกล้องไปที่การ์ด Hiro
-    </div>
+    <button id="btn-close-ar" class="icon-btn light" type="button" aria-label="Close">✖️</button>
+    <div id="ar-hint" class="ar-hint">Loading hand tracking… ✋</div>
   </div>
 </div>
 

@@ -83,62 +83,70 @@
      ออกเสียงจริงด้วย TTS ของเบราว์เซอร์ ไม่ต้องมีไฟล์เสียง
      ========================================================== */
   const Voice = (function () {
-    let voices = [], chosen = null, ready = false;
     const synth = window.speechSynthesis;
+    let voices = [], chosen = null, unlocked = false;
 
     function load() {
       if (!synth) return;
       voices = synth.getVoices() || [];
-      // Prefer a natural en-US/en-GB voice; a female voice reads
-      // friendlier for young children (เลือกเสียงอังกฤษที่ฟังนุ่ม)
-      const en = voices.filter((v) => /en(-|_)?(US|GB|AU)?/i.test(v.lang));
+      // Prefer a natural en voice; child-friendly female if available
+      // (เลือกเสียงอังกฤษที่ฟังนุ่ม)
+      const en = voices.filter((v) => /^en[-_]/i.test(v.lang) || /english/i.test(v.name));
       chosen =
-        en.find((v) => /female|samantha|karen|zira|google us english|libby|aria/i.test(v.name)) ||
-        en.find((v) => /google/i.test(v.name)) ||
-        en[0] || voices[0] || null;
-      ready = voices.length > 0;
+        en.find((v) => /samantha|karen|zira|female|google us english|aria|libby|natural/i.test(v.name)) ||
+        en.find((v) => /google|microsoft/i.test(v.name)) ||
+        en[0] || null;
     }
     if (synth) {
       load();
       synth.onvoiceschanged = load;
+      // Some browsers populate voices late — retry a few times (โหลดเสียงซ้ำ)
+      [150, 500, 1200, 2500].forEach((t) => setTimeout(load, t));
     }
 
-    // Unlock audio on first user gesture (ปลดล็อกเสียงตอนแตะครั้งแรก)
-    function prime() {
-      if (!synth) return;
-      try {
-        const u = new SpeechSynthesisUtterance(" ");
-        u.volume = 0; synth.speak(u);
-      } catch (e) {}
-      load();
-    }
-
-    /**
-     * speak(text, opts) — say English text.
-     * opts: { rate, pitch, onend }
-     */
-    function speak(text, opts = {}) {
-      if (!synth) { if (opts.onend) opts.onend(); return; }
-      synth.cancel(); // stop overlap (หยุดเสียงเก่า)
+    function utter(text, opts) {
       const u = new SpeechSynthesisUtterance(text);
       if (chosen) u.voice = chosen;
       u.lang = (chosen && chosen.lang) || "en-US";
-      u.rate = opts.rate != null ? opts.rate : 0.85; // slower for kids (ช้าลงให้เด็กฟังทัน)
-      u.pitch = opts.pitch != null ? opts.pitch : 1.15;
-      u.volume = 1;
+      u.rate = opts.rate != null ? opts.rate : 0.9;   // slower for kids
+      u.pitch = opts.pitch != null ? opts.pitch : 1.1;
+      u.volume = opts.volume != null ? opts.volume : 1;
       if (opts.onend) u.onend = opts.onend;
-      synth.speak(u);
+      return u;
+    }
+
+    /**
+     * speak(text, opts) — say English text robustly across devices.
+     * Mobile browsers need speech kicked off shortly after a gesture and
+     * dislike cancel() immediately before speak(); we guard against both.
+     */
+    function speak(text, opts = {}) {
+      if (!synth || !Store.isSound()) { if (opts.onend) opts.onend(); return; }
+      try { if (synth.speaking || synth.pending) synth.cancel(); } catch (e) {}
+      // tiny delay avoids the Android "cancel kills the next utterance" bug
+      setTimeout(() => { try { synth.resume(); synth.speak(utter(text, opts)); } catch (e) {} }, 60);
+    }
+
+    // Unlock TTS on the first real user gesture, with an audible cue so
+    // parents immediately know sound works. (ปลดล็อกเสียงพร้อมทักทาย)
+    function unlock() {
+      if (!synth) return;
+      load();
+      if (unlocked) return;
+      unlocked = true;
+      if (!Store.isSound()) return;
+      try { synth.resume(); synth.speak(utter("Let's play!", { rate: 1 })); } catch (e) {}
     }
 
     // Say the word slowly, then its sentence (พูดคำ แล้วตามด้วยประโยค)
     function teachWord(word) {
-      speak(word.word, { rate: 0.7, onend: () => {
-        setTimeout(() => speak(word.sentence, { rate: 0.85 }), 350);
+      speak(word.word, { rate: 0.75, onend: () => {
+        setTimeout(() => speak(word.sentence, { rate: 0.9 }), 250);
       }});
     }
     const isSupported = () => !!synth;
 
-    return { prime, speak, teachWord, isSupported };
+    return { speak, teachWord, unlock, isSupported, reloadVoices: load };
   })();
 
   /* ==========================================================
@@ -338,17 +346,19 @@
       Voice.teachWord(current);
       reward(current.id, "listen", "Listen! 👂");
     }
-    function showBubble(text) {
+    function showBubble(text, sticky) {
       bubble.textContent = text;
       bubble.classList.add("show");
       clearTimeout(showBubble._t);
-      showBubble._t = setTimeout(() => bubble.classList.remove("show"), 3200);
+      if (!sticky) showBubble._t = setTimeout(() => bubble.classList.remove("show"), 3200);
     }
+    function hideBubble() { clearTimeout(showBubble._t); bubble.classList.remove("show"); }
     function charCheerAnim() {
       charEl.classList.remove("bounce"); void charEl.offsetWidth; charEl.classList.add("bounce");
     }
+    const charEl2 = () => charEl;
 
-    return { open, getCurrent, refreshStars, doListen, charCheerAnim, showBubble };
+    return { open, getCurrent, refreshStars, doListen, charCheerAnim, showBubble, hideBubble, charEl: charEl2 };
   })();
 
   // Lighten a hex color toward white by amt 0..1 (ทำสีให้อ่อนลง)
@@ -420,66 +430,92 @@
      Web Speech recognition (says the word) + volume fallback.
      ========================================================== */
   const Speak = (function () {
-    const VOLUME_THRESHOLD = 28, LISTEN_MS = 5000;
+    const VOLUME_THRESHOLD = 26, LISTEN_MS = 6000;
     let audioCtx, analyser, micStream, rafId, timeoutId, recognition;
-    let listening = false, rewarded = false, btn;
+    let listening = false, rewarded = false, peak = 0, hasSR = false, btn;
 
     function init() { btn = $("#act-speak"); if (btn) btn.onclick = start; }
 
     async function start() {
       const word = Play.getCurrent(); if (!word || listening) return;
       Sfx.play("tap");
-      Play.showBubble(`Say "${word.word}"! 🗣️`);
-      Voice.speak(word.word, { rate: 0.7 }); // model the word first (พูดให้ฟังก่อน)
+      // 1) model the word first so the child hears the target (พูดให้ฟังก่อน)
+      Play.showBubble(`Say "${word.word}"! 🗣️`, true);
+      Voice.speak(word.word, { rate: 0.7 });
 
       try { micStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
       catch (err) {
-        Play.showBubble("Allow the microphone 🎤 · อนุญาตไมค์");
+        Play.showBubble("Please allow the microphone 🎤 · อนุญาตไมค์", false);
         return;
       }
-      listening = true; rewarded = false; btn.classList.add("busy");
-      startRecognition(word);
+      listening = true; rewarded = false; peak = 0; btn.classList.add("busy");
+      const charEl = Play.charEl(); charEl.classList.add("listening");
+      Play.showBubble("I'm listening… 🎤 พูดเลย!", true);
+      hasSR = startRecognition(word);
 
       const A = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new A();
+      audioCtx = new A(); if (audioCtx.state === "suspended") audioCtx.resume();
       const src = audioCtx.createMediaStreamSource(micStream);
       analyser = audioCtx.createAnalyser(); analyser.fftSize = 512; src.connect(analyser);
       const data = new Uint8Array(analyser.frequencyBinCount);
       (function tick() {
         analyser.getByteFrequencyData(data);
-        let sum = 0; for (let i=0;i<data.length;i++) sum += data[i];
-        if (!rewarded && sum/data.length > VOLUME_THRESHOLD) win(word, "Nice and loud! 🔊");
+        let sum = 0; for (let i = 0; i < data.length; i++) sum += data[i];
+        const vol = sum / data.length; if (vol > peak) peak = vol;
+        // Live feedback: the character grows with the child's voice
+        // so they can SEE it's hearing them (ตัวละครโตตามเสียงพูด)
+        const lvl = Math.min(1, vol / 70);
+        charEl.style.transform = `scale(${(1 + lvl * 0.45).toFixed(3)})`;
+        // Without SpeechRecognition (e.g. iOS Safari), loudness alone wins
+        if (!rewarded && !hasSR && vol > VOLUME_THRESHOLD) win(word, `Great voice! 🔊 เยี่ยมมาก!`);
         rafId = requestAnimationFrame(tick);
       })();
-      timeoutId = setTimeout(stop, LISTEN_MS);
+      timeoutId = setTimeout(finishListening, LISTEN_MS);
     }
 
     function startRecognition(word) {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) return;
+      if (!SR) return false;
       try {
         recognition = new SR();
         recognition.lang = "en-US"; recognition.interimResults = true; recognition.continuous = true;
         recognition.onresult = (e) => {
           let heard = "";
-          for (let i=0;i<e.results.length;i++) for (let j=0;j<e.results[i].length;j++) heard += " " + e.results[i][j].transcript;
-          if (!rewarded && heard.toLowerCase().includes(word.word.toLowerCase())) win(word, "Perfect! You said it! 🌟");
+          for (let i = 0; i < e.results.length; i++)
+            for (let j = 0; j < e.results[i].length; j++) heard += " " + e.results[i][j].transcript;
+          heard = heard.toLowerCase().trim();
+          if (heard) Play.showBubble(`I heard: “${heard}” 👂`, true); // show what was heard
+          if (!rewarded && heard.includes(word.word.toLowerCase())) win(word, `Perfect! You said “${word.word}”! 🌟`);
         };
         recognition.onerror = () => {};
         recognition.start();
-      } catch (e) {}
+        return true;
+      } catch (e) { return false; }
     }
+
     function win(word, msg) {
       if (rewarded) return; rewarded = true;
+      Play.charEl().style.transform = "";
       Play.charCheerAnim();
       reward(word.id, "speak", msg);
-      setTimeout(stop, 400);
+      setTimeout(stop, 600);
     }
+
+    // Timeout with no match → encourage; reward effort if they made any sound
+    // so the Speak activity never feels like a dead end (ไม่ให้รู้สึกล้มเหลว)
+    function finishListening() {
+      if (rewarded) { stop(); return; }
+      const word = Play.getCurrent();
+      if (peak > 12) win(word, "Good try! 👏 เก่งมาก ลองอีกได้นะ");
+      else { Play.showBubble(`Try again — say “${word.word}” 🗣️`, false); Voice.speak(word.word, { rate: 0.7 }); stop(); }
+    }
+
     function stop() {
       if (!listening) return; listening = false;
+      const charEl = Play.charEl(); charEl.classList.remove("listening"); charEl.style.transform = "";
       if (rafId) cancelAnimationFrame(rafId);
       if (timeoutId) clearTimeout(timeoutId);
-      if (recognition) { try { recognition.stop(); } catch(e){} recognition = null; }
+      if (recognition) { try { recognition.stop(); } catch (e) {} recognition = null; }
       if (micStream) micStream.getTracks().forEach((t) => t.stop());
       if (audioCtx && audioCtx.state !== "closed") audioCtx.close();
       if (btn) btn.classList.remove("busy");
@@ -492,6 +528,7 @@
      ========================================================== */
   const Write = (function () {
     let modal, canvas, ctx, size = 320, drawing = false, strokes = 0, current;
+    let last = null; // last point for smoothing (จุดล่าสุดเพื่อทำเส้นให้ลื่น)
 
     function init() {
       modal = $("#write-modal"); canvas = $("#write-canvas");
@@ -500,8 +537,10 @@
       $("#act-write").onclick = open;
       $("#btn-clear").onclick = () => { Sfx.play("tap"); guide(); };
       $("#btn-close-write").onclick = done;
-      ["pointerdown","pointermove","pointerup","pointercancel","pointerleave"].forEach((ev) =>
-        canvas.addEventListener(ev, handler));
+      canvas.style.touchAction = "none";
+      canvas.addEventListener("pointerdown", onDown);
+      canvas.addEventListener("pointermove", onMove);
+      ["pointerup","pointercancel","pointerleave"].forEach((ev) => canvas.addEventListener(ev, onUp));
     }
     function res() {
       const dpr = window.devicePixelRatio || 1, rect = canvas.getBoundingClientRect();
@@ -537,10 +576,36 @@
       const r = canvas.getBoundingClientRect();
       return { x: (e.clientX-r.left)*(size/r.width), y: (e.clientY-r.top)*(size/r.height) };
     }
-    function handler(e) {
-      if (e.type === "pointerdown") { e.preventDefault(); drawing = true; strokes++; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); }
-      else if (e.type === "pointermove") { if (!drawing) return; e.preventDefault(); const p = pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
-      else { if (!drawing) return; drawing = false; ctx.closePath(); }
+    function onDown(e) {
+      e.preventDefault();
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+      drawing = true; strokes++;
+      last = pos(e);
+      // draw a dot so a simple tap leaves a mark (แตะแล้วเป็นจุด)
+      ctx.beginPath(); ctx.arc(last.x, last.y, ctx.lineWidth/2, 0, Math.PI*2);
+      ctx.fillStyle = ctx.strokeStyle; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(last.x, last.y);
+    }
+    function onMove(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      // Use coalesced events for high-fidelity fast strokes (เก็บทุกจุดระหว่างลาก)
+      const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      for (const ev of evs) {
+        const p = pos(ev);
+        const mid = { x: (last.x + p.x) / 2, y: (last.y + p.y) / 2 };
+        // quadratic curve through the midpoint = smooth line (เส้นโค้งลื่น)
+        ctx.quadraticCurveTo(last.x, last.y, mid.x, mid.y);
+        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(mid.x, mid.y);
+        last = p;
+      }
+    }
+    function onUp(e) {
+      if (!drawing) return;
+      drawing = false;
+      if (last) { ctx.lineTo(last.x, last.y); ctx.stroke(); }
+      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
     }
     return { init };
   })();
@@ -720,84 +785,175 @@
   })();
 
   /* ==========================================================
-     AR — lazy Hiro-marker camera scene (โหมด AR)
-     Loads A-Frame + AR.js only when needed (performance).
-     Pre-checks the camera to avoid AR.js's ugly error alert.
+     HAND AR — "touch the word with your hand" (โหมดจิ้มคำด้วยมือ)
+     Uses the live camera + MediaPipe HandLandmarker to track the
+     index fingertip; the child moves their hand to touch the correct
+     emoji floating over the video. Tapping also works (fallback), so
+     it plays even without hand-tracking or on desktop.
      ========================================================== */
-  const AR = (function () {
-    let scriptsLoaded = false, host, view, hint;
+  const HandAR = (function () {
+    const DWELL = 550;            // ms to hold the fingertip on a target
+    const MODEL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+    const LIB = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+    let view, video, canvas, ctx, hint;
+    let landmarker = null, running = false, rafId = null, stream = null;
+    let targets = [], target = null, solved = false, hoverId = null, hoverStart = 0, cooldown = 0;
+
     function init() {
-      host = $("#ar-scene-host"); view = $("#ar-view"); hint = $("#ar-hint");
-      $("#act-ar").onclick = openAR;
-      $("#btn-close-ar").onclick = closeAR;
+      view = $("#ar-view"); video = $("#ar-video"); canvas = $("#ar-canvas");
+      ctx = canvas.getContext("2d"); hint = $("#ar-hint");
+      $("#act-ar").onclick = open;
+      $("#btn-close-ar").onclick = close;
+      // Tap is always available as an alternative input (แตะก็ได้)
+      canvas.addEventListener("pointerdown", (e) => {
+        if (!running) return;
+        const r = canvas.getBoundingClientRect();
+        pick({ x: (e.clientX - r.left) * canvas.width / r.width, y: (e.clientY - r.top) * canvas.height / r.height }, true);
+      });
+      window.addEventListener("resize", () => { if (running) resize(); });
     }
-    function loadScripts() {
-      if (scriptsLoaded) return Promise.resolve();
-      return new Promise((resolve, reject) => {
-        const a = document.createElement("script");
-        a.src = "https://aframe.io/releases/1.2.0/aframe.min.js";
-        a.onload = () => {
-          const b = document.createElement("script");
-          b.src = "https://raw.githack.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar.js";
-          b.onload = () => { scriptsLoaded = true; resolve(); };
-          b.onerror = reject; document.head.appendChild(b);
-        };
-        a.onerror = reject; document.head.appendChild(a);
+
+    async function ensureLandmarker() {
+      if (landmarker) return landmarker;
+      const vision = await import(/* webpackIgnore */ LIB + "/+esm");
+      const fileset = await vision.FilesetResolver.forVisionTasks(LIB + "/wasm");
+      landmarker = await vision.HandLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: MODEL },
+        runningMode: "VIDEO", numHands: 1,
+      });
+      return landmarker;
+    }
+
+    async function open() {
+      target = Play.getCurrent(); if (!target) return;
+      Sfx.play("tap"); solved = false; hoverId = null;
+      try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false }); }
+      catch (e) { Play.showBubble("No camera here 📷 — try on a phone! · ไม่มีกล้อง ลองบนมือถือ", false); return; }
+
+      view.classList.remove("hidden");
+      hint.textContent = "Loading hand tracking… ✋ กำลังโหลด";
+      video.srcObject = stream;
+      try { await video.play(); } catch (e) {}
+      resize(); newRound();
+
+      // Load the hand model in the background; tap already works meanwhile.
+      ensureLandmarker()
+        .then(() => { hint.innerHTML = `Touch the <b>${target.word}</b> with your hand ✋<br/>ใช้มือแตะคำที่ถูก`; })
+        .catch(() => { hint.innerHTML = `Tap the <b>${target.word}</b> 👆<br/>(hand tracking unavailable — แตะได้เลย)`; });
+
+      running = true; loop();
+    }
+
+    function resize() { canvas.width = view.clientWidth || innerWidth; canvas.height = view.clientHeight || innerHeight; buildTargets(); }
+
+    function newRound() {
+      solved = false; hoverId = null;
+      buildTargets();
+      Voice.speak(`Touch the ${target.word}!`, { rate: 0.85 });
+    }
+
+    function buildTargets() {
+      const others = shuffleArr(WORDS.filter((w) => w.id !== target.id)).slice(0, 2);
+      const pick = shuffleArr(others.concat(target));
+      const W = canvas.width, H = canvas.height, n = pick.length, r = Math.min(W, H) * 0.14;
+      targets = pick.map((w, i) => ({ w, x: W * (i + 1) / (n + 1), y: H * 0.36, r }));
+      // expose normalized target centers for automated testing (ช่องทางทดสอบ)
+      window.__handARTargets = targets.map((t) => ({ id: t.w.id, x: t.x / W, y: t.y / H }));
+      window.__handARTarget = target.id;
+    }
+    function shuffleArr(a) { a = a.slice(); for (let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+    function fingerPoint(res) {
+      if (window.__handTestPoint) return { x: window.__handTestPoint.x * canvas.width, y: window.__handTestPoint.y * canvas.height };
+      if (!res || !res.landmarks || !res.landmarks.length) return null;
+      const lm = res.landmarks[0][8]; if (!lm) return null;   // index fingertip
+      return { x: (1 - lm.x) * canvas.width, y: lm.y * canvas.height }; // mirror x
+    }
+
+    function loop() {
+      if (!running) return;
+      rafId = requestAnimationFrame(loop);
+      drawVideo();
+      let res = null;
+      if (landmarker && video.readyState >= 2 && video.videoWidth) {
+        try { res = landmarker.detectForVideo(video, performance.now()); } catch (e) {}
+      }
+      const fp = fingerPoint(res);
+      drawTargets(fp);
+      if (fp) { drawCursor(fp); dwellCheck(fp); }
+    }
+
+    function drawVideo() {
+      const W = canvas.width, H = canvas.height, vw = video.videoWidth || 640, vh = video.videoHeight || 480;
+      const s = Math.max(W / vw, H / vh), dw = vw * s, dh = vh * s, dx = (W - dw) / 2, dy = (H - dh) / 2;
+      ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1); // mirror like a selfie
+      if (video.videoWidth) ctx.drawImage(video, dx, dy, dw, dh);
+      else { ctx.fillStyle = "#222"; ctx.fillRect(0, 0, W, H); }
+      ctx.restore();
+      // dim slightly so bright targets pop (ลดความสว่างให้เป้าเด่น)
+      ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(0, 0, W, H);
+    }
+
+    function drawTargets(fp) {
+      targets.forEach((t) => {
+        const hovering = fp && Math.hypot(fp.x - t.x, fp.y - t.y) < t.r;
+        ctx.save();
+        ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
+        ctx.fillStyle = hovering ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.82)";
+        ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 18; ctx.fill();
+        if (hovering) { ctx.lineWidth = 6; ctx.strokeStyle = t.w.color; ctx.stroke(); }
+        ctx.shadowBlur = 0;
+        ctx.font = `${t.r * 1.1}px serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(t.w.emoji, t.x, t.y + t.r * 0.05);
+        ctx.font = `bold ${t.r * 0.34}px ${getComputedStyle(document.body).fontFamily}`;
+        ctx.fillStyle = "#4E342E"; ctx.fillText(t.w.word, t.x, t.y + t.r * 0.82);
+        ctx.restore();
       });
     }
-    // Draw the emoji to a data URL so it can float on the marker
-    // (วาดอีโมจิเป็นรูปเพื่อให้ลอยบนมาร์กเกอร์)
-    function emojiURL(emoji) {
-      const c = document.createElement("canvas"); c.width = c.height = 256;
-      const x = c.getContext("2d");
-      x.font = "200px serif"; x.textAlign = "center"; x.textBaseline = "middle";
-      x.fillText(emoji, 128, 140);
-      return c.toDataURL();
+
+    function drawCursor(fp) {
+      ctx.save();
+      ctx.beginPath(); ctx.arc(fp.x, fp.y, 26, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,193,7,0.35)"; ctx.fill();
+      ctx.font = "44px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("👆", fp.x, fp.y + 20);
+      ctx.restore();
     }
-    async function openAR() {
-      const word = Play.getCurrent(); if (!word) return;
-      Sfx.play("tap");
-      // 1) Pre-check camera so we can fail gracefully (ตรวจกล้องก่อน)
-      try {
-        const test = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        test.getTracks().forEach((t) => t.stop());
-      } catch (err) {
-        Play.showBubble("No camera here 📷 — try on a phone! · ไม่มีกล้อง ลองบนมือถือ");
-        return;
-      }
-      try { await loadScripts(); }
-      catch (e) { Play.showBubble("Could not load AR 😢 (check internet)"); return; }
-      buildScene(word);
-      view.classList.remove("hidden");
-      hint.classList.remove("found");
+
+    function dwellCheck(fp) {
+      if (solved || performance.now() < cooldown) return;
+      const t = targets.find((t) => Math.hypot(fp.x - t.x, fp.y - t.y) < t.r);
+      if (!t) { hoverId = null; return; }
+      if (hoverId !== t.w.id) { hoverId = t.w.id; hoverStart = performance.now(); }
+      else if (performance.now() - hoverStart > DWELL) resolve(t);
     }
-    function buildScene(word) {
-      host.innerHTML = `
-        <a-scene embedded vr-mode-ui="enabled:false"
-          renderer="antialias:true; alpha:true; precision:mediump"
-          arjs="sourceType:webcam; debugUIEnabled:false; detectionMode:mono">
-          <a-marker id="m" preset="hiro" smooth="true" smoothCount="8">
-            <a-box position="0 0.35 0" scale="0.9 0.9 0.9" color="${word.color}">
-              <a-animation attribute="rotation" to="0 360 0" dur="7000" easing="linear" repeat="indefinite"></a-animation>
-            </a-box>
-            <a-image src="${emojiURL(word.emoji)}" position="0 1.1 0" width="1.4" height="1.4" look-at="[camera]" transparent="true"></a-image>
-            <a-text value="${word.word}" align="center" position="0 1.9 0" width="4" color="#fff" stroke="black" stroke-width="0.04" look-at="[camera]"></a-text>
-          </a-marker>
-          <a-entity camera></a-entity>
-        </a-scene>`;
-      const m = $("#m", host);
-      if (m) {
-        m.addEventListener("markerFound", () => {
-          hint.classList.add("found");
-          Voice.teachWord(word); Sfx.play("star");
-        });
-        m.addEventListener("markerLost", () => hint.classList.remove("found"));
+    // Tap or dwell selection (เลือกด้วยการแตะหรือจิ้มค้าง)
+    function pick(fp, isTap) {
+      if (solved || performance.now() < cooldown) return;
+      const t = targets.find((t) => Math.hypot(fp.x - t.x, fp.y - t.y) < t.r);
+      if (t) resolve(t);
+    }
+
+    function resolve(t) {
+      if (t.w.id === target.id) {
+        solved = true;
+        Fx.burst(120); Fx.cheer("You got it! 🎉"); Sfx.play("star");
+        Voice.speak(`Yes! ${target.word}!`, { rate: 0.85 });
+        reward(target.id, "speak", `You found the ${target.word}! ✋`);
+        // next round with a fresh random target (เล่นต่อคำใหม่)
+        setTimeout(() => { if (!running) return; target = WORDS[(Math.random()*WORDS.length)|0]; newRound(); }, 1700);
+      } else {
+        cooldown = performance.now() + 500; hoverId = null;
+        Sfx.play("pop"); Voice.speak("Try again", { rate: 0.9 });
       }
     }
-    function closeAR() {
+
+    function close() {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+      video.srcObject = null;
       view.classList.add("hidden");
-      // Remove the scene → stops the camera (ลบฉากเพื่อคืนกล้อง)
-      host.innerHTML = "";
     }
     return { init };
   })();
@@ -808,11 +964,15 @@
   function boot() {
     // Splash → Home (แตะเริ่ม → ปลดล็อกเสียง + นับ streak รายวัน)
     $("#btn-start").onclick = () => {
-      Voice.prime(); Sfx.ac(); Sfx.play("pop");
+      Voice.unlock(); Sfx.ac(); Sfx.play("pop");
       Store.touchStreak();
       const sc = $("#streak-count"); if (sc) sc.textContent = Store.streak();
       Router.show("screen-home");
     };
+    // Safety net: unlock audio/voice on the very first tap anywhere
+    // (บางเบราว์เซอร์ต้องปลดล็อกเสียงจากการแตะครั้งแรก)
+    const firstTap = () => { Voice.unlock(); Sfx.ac(); document.removeEventListener("pointerdown", firstTap); };
+    document.addEventListener("pointerdown", firstTap, { once: false });
     // Voices may load async; update the loading hint (อัปเดตข้อความโหลด)
     const loadingEl = $("#splash-loading");
     if (loadingEl) loadingEl.textContent = Voice.isSupported()
@@ -836,7 +996,7 @@
     Quiz.init();
     Watch.init();
     Parents.init();
-    AR.init();
+    HandAR.init();
 
     // Register service worker for offline/install (ลงทะเบียน SW เพื่อออฟไลน์)
     if ("serviceWorker" in navigator) {

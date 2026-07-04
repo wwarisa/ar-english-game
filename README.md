@@ -27,7 +27,9 @@ No frameworks, no build step, works offline as an installable app (PWA).
   achievements, usage tips, and a reset button. (โซนผู้ปกครอง มีด่านกันเด็กกดเอง)
 - 📱 **Works everywhere, no setup** — a beautiful *Screen Mode* plays instantly with
   **no camera and no printed marker required**. AR (camera) is an optional bonus.
-- 📷 **AR bonus** — point the phone camera at a Hiro marker to see the animal pop up.
+- ✋ **Hand-Tracking AR game** — using the phone camera + MediaPipe, children **touch the
+  correct word with their real hand**. Falls back to tapping, so it works everywhere.
+  (จิ้มคำที่ถูกด้วยมือจริงผ่านกล้อง)
 - 🌏 **Bilingual** — English + Thai translation on every word.
 - 💾 **Installable & offline** — add to home screen; plays without internet after first load.
 - 🧒 **Child-first UX** — huge tappable buttons, rounded toy-like design, friendly voice.
@@ -74,7 +76,7 @@ ar-english-game/
    - 👂 **Listen** — hear the word + sentence (tap the character too).
    - 🎤 **Speak** — say the word; loud/correct speech makes the character celebrate.
    - ✍️ **Write** — trace the letter with a chunky crayon line.
-   - 📷 **AR** — (on a phone) launch the camera and aim at the Hiro marker.
+   - ✋ **Hand AR** — (on a phone) touch the correct word with your hand, or tap it.
 4. Earn ⭐⭐⭐ per word and collect a 🏆.
 
 ## ▶️ Run locally
