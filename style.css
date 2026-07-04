@@ -1,227 +1,308 @@
 /* ============================================================
-   style.css — Child-friendly UI (0–5 ปี)
+   style.css — AR Magic English Safari · Design System
    ------------------------------------------------------------
-   Design principles for young children:
-   - HUGE tap targets (นิ้วเล็ก กดง่าย) — min ~72px per WCAG+.
-   - High-contrast, saturated, happy colors (สีสดใส).
-   - Rounded, chunky, "toy-like" shapes (มนกลม เหมือนของเล่น).
-   - Minimal text; rely on big emoji icons (ใช้อีโมจิแทนคำ).
-   - No accidental scroll/zoom on the camera view.
+   A cohesive, premium, child-first design for ages 0–5.
+   ระบบดีไซน์สำหรับเด็ก 0–5 ปี: สดใส มนกลม ปุ่มใหญ่ กดง่าย
    ============================================================ */
 
-/* ---------- Reset & base (ตั้งค่าพื้นฐาน) ---------- */
+/* ---------- Design tokens (ตัวแปรสี/ระยะ) ---------- */
+:root {
+  --c-sky-1: #FFE29F;
+  --c-sky-2: #FFA99F;
+  --c-sky-3: #FF719A;
+  --brand:   #FF8A65;
+  --ink:     #4E342E;
+  --ink-soft:#8D6E63;
+  --white:   #FFFFFF;
+  --star:    #FFC107;
+  --green:   #43A047;
+  --green-d: #2E7D32;
+  --shadow:  0 12px 26px rgba(0,0,0,0.18);
+  --radius:  28px;
+  --font: "Baloo 2", "Comic Sans MS", "Segoe UI Rounded", "Trebuchet MS", sans-serif;
+}
+
+/* ---------- Reset ---------- */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* ไม่ให้เกิดกล่องสีตอนแตะ */
-  user-select: none;                         /* กันการลากเลือกข้อความ */
-  -webkit-user-select: none;
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none; user-select: none;
 }
-
 html, body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;                 /* full-screen camera, no scrolling */
-  font-family: "Comic Sans MS", "Baloo 2", "Segoe UI Rounded", sans-serif;
-  background: #000;                 /* black behind camera before it starts */
-  touch-action: none;               /* ปิด gesture ซูม/เลื่อนของเบราว์เซอร์ */
+  width: 100%; height: 100%;
+  font-family: var(--font);
+  color: var(--ink);
+  overflow: hidden;
+  background: #FFF3E0;
+  touch-action: manipulation;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+img { max-width: 100%; }
+
+/* ============================================================
+   SCREENS (ระบบสลับหน้าจอ)
+   ============================================================ */
+#app { position: fixed; inset: 0; overflow: hidden; }
+.screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden;
+  transform: scale(1.03);
+  transition: opacity .32s ease, transform .32s ease, visibility .32s;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active {
+  opacity: 1; visibility: visible; transform: scale(1);
 }
 
-/* A-Frame injects a fullscreen canvas; keep it behind the UI */
-.a-canvas,
-video {
-  z-index: 0 !important;
+/* Safe-area helper padding (เผื่อรอยบากมือถือ) */
+.home-header, .play-header, .splash-inner {
+  padding-top: max(env(safe-area-inset-top), 14px);
 }
 
 /* ============================================================
-   UI OVERLAY (ชั้น UI ทับกล้อง)
+   1) SPLASH (หน้าเปิด)
    ============================================================ */
-#ui-overlay {
-  position: fixed;
-  inset: 0;                         /* fill screen */
-  z-index: 10;
-  pointer-events: none;             /* let taps fall through EXCEPT buttons */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;        /* push controls to the bottom */
-  /* Respect notches/home-bar on phones (พื้นที่ปลอดภัยบนมือถือ) */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           calc(env(safe-area-inset-bottom) + 16px) env(safe-area-inset-left);
-}
-
-/* Guiding hint at the top (คำแนะนำสำหรับผู้ปกครอง) */
-#status-hint {
-  align-self: center;
-  margin-top: 18px;
-  padding: 10px 18px;
-  border-radius: 22px;
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
-  font-size: 15px;
-  line-height: 1.35;
+#screen-splash {
+  align-items: center; justify-content: center;
+  background: linear-gradient(160deg, var(--c-sky-1), var(--c-sky-2) 55%, var(--c-sky-3));
   text-align: center;
-  transition: opacity 0.4s ease;
 }
-/* Fade the hint away once the marker is found (ซ่อนเมื่อเจอมาร์กเกอร์) */
-#status-hint.found {
-  opacity: 0;
+.splash-inner { padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.splash-emoji { font-size: 96px; animation: bob 2.4s ease-in-out infinite; filter: drop-shadow(0 10px 12px rgba(0,0,0,.2)); }
+.splash-title {
+  font-size: 40px; line-height: 1.1; color: var(--white);
+  text-shadow: 0 4px 0 rgba(0,0,0,.12); font-weight: 800; letter-spacing: .5px;
 }
+.splash-sub { font-size: 18px; color: #fff; opacity: .95; margin-bottom: 8px; }
+.splash-hint { font-size: 14px; color: #fff; opacity: .85; margin-top: 6px; min-height: 20px; }
 
-/* Bottom button row (แถวปุ่มด้านล่าง) */
-#button-bar {
-  display: flex;
-  gap: 22px;
-  justify-content: center;
-  align-items: flex-end;
-  padding-bottom: 8px;
+.big-cta {
+  margin-top: 10px;
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--white); color: var(--brand);
+  padding: 16px 40px; border-radius: 40px;
+  box-shadow: 0 8px 0 #E0603F, var(--shadow);
+  font-size: 26px; font-weight: 800;
+  transition: transform .08s, box-shadow .08s;
 }
-
-/* ---------- The big kid buttons (ปุ่มใหญ่สำหรับเด็ก) ---------- */
-.kid-btn {
-  pointer-events: auto;             /* re-enable taps on the button itself */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-
-  width: 108px;
-  height: 108px;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-
-  color: #fff;
-  font-size: 20px;
-  font-weight: 800;
-
-  /* Chunky candy gradient + soft toy shadow (ไล่สี + เงานุ่ม) */
-  background: linear-gradient(160deg, #FFB74D 0%, #FB8C00 100%);
-  box-shadow: 0 8px 0 #C25E00, 0 12px 18px rgba(0, 0, 0, 0.35);
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
-}
-
-/* The WRITE button gets a different happy color (คนละสีให้แยกออก) */
-#btn-write {
-  background: linear-gradient(160deg, #4FC3F7 0%, #039BE5 100%);
-  box-shadow: 0 8px 0 #0277BD, 0 12px 18px rgba(0, 0, 0, 0.35);
-}
-
-/* Press effect: button "squishes" down like a real toy button
-   (เอฟเฟกต์กดยุบ ให้ความรู้สึกเหมือนของเล่นจริง) */
-.kid-btn:active {
-  transform: translateY(6px);
-  box-shadow: 0 2px 0 #C25E00, 0 4px 8px rgba(0, 0, 0, 0.35);
-}
-#btn-write:active {
-  box-shadow: 0 2px 0 #0277BD, 0 4px 8px rgba(0, 0, 0, 0.35);
-}
-
-/* Reward pulse applied by JS on success (จังหวะเด้งตอนทำสำเร็จ) */
-.kid-btn.reward {
-  animation: pop 0.5s ease;
-}
-@keyframes pop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.25) rotate(-6deg); }
-  70%  { transform: scale(0.95) rotate(4deg); }
-  100% { transform: scale(1); }
-}
-
-/* Recording state for the mic (สถานะกำลังฟังเสียง) */
-.kid-btn.listening {
-  animation: listen 1s ease-in-out infinite;
-  background: linear-gradient(160deg, #EF5350 0%, #E53935 100%);
-  box-shadow: 0 8px 0 #B71C1C, 0 12px 18px rgba(0, 0, 0, 0.35);
-}
-@keyframes listen {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.08); }
-}
-
-.btn-emoji { font-size: 42px; line-height: 1; }
-.btn-label { font-size: 18px; }
+.big-cta small { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
+.big-cta:active { transform: translateY(6px); box-shadow: 0 2px 0 #E0603F, var(--shadow); }
 
 /* ============================================================
-   WRITE MODAL (ป็อปอัปฝึกเขียน)
+   2) HOME (หน้าเลือกคำ)
    ============================================================ */
-#write-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Soft, warm scrim so it feels gentle not scary (ฉากหลังนุ่มนวล) */
-  background: rgba(255, 236, 179, 0.92);
-  backdrop-filter: blur(4px);
-  transition: opacity 0.25s ease;
+#screen-home { background: linear-gradient(180deg, #FFF7EC 0%, #FFE9D6 100%); }
+
+.home-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px 8px; gap: 12px;
+}
+.home-title { display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 800; color: var(--brand); }
+.home-title-emoji { font-size: 30px; }
+.home-tools { display: flex; align-items: center; gap: 10px; }
+
+.star-wallet {
+  background: #fff; border-radius: 22px; padding: 8px 14px;
+  font-weight: 800; font-size: 18px; color: var(--ink); box-shadow: var(--shadow);
+}
+.icon-btn {
+  width: 48px; height: 48px; border-radius: 16px; font-size: 24px;
+  background: #fff; box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .08s;
+}
+.icon-btn:active { transform: scale(.9); }
+.icon-btn.light { background: rgba(255,255,255,.9); }
+.icon-btn.muted { opacity: .55; }
+
+/* Category chips (แถบหมวด) */
+.category-bar {
+  display: flex; align-items: center; gap: 10px;
+  overflow-x: auto; overflow-y: hidden;  /* avoid overflow-y:auto side-effect clipping pills */
+  padding: 10px 18px 16px;
+  scrollbar-width: none;
+}
+.category-bar::-webkit-scrollbar { display: none; }
+.chip {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 18px; border-radius: 22px;
+  background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  font-size: 16px; font-weight: 700; color: var(--ink-soft);
+  transition: transform .1s, background .2s, color .2s;
+}
+.chip.active { color: #fff; transform: translateY(-1px); }
+.chip-emoji { font-size: 20px; }
+
+/* Word grid (ตารางคำ) */
+.word-grid {
+  flex: 1;
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 16px; padding: 4px 18px 24px;
+  align-content: start;
+}
+@media (min-width: 620px) { .word-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .word-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.word-card {
+  position: relative;
+  background: #fff; border-radius: var(--radius);
+  padding: 18px 12px 14px; text-align: center;
+  box-shadow: var(--shadow);
+  transition: transform .12s ease, box-shadow .12s ease;
+  overflow: hidden;
+}
+.word-card::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 46%;
+  background: var(--card-tint, #FFE0B2); opacity: .35; z-index: 0;
+}
+.word-card:active { transform: scale(.95); }
+.word-card .wc-emoji { position: relative; z-index: 1; font-size: 64px; line-height: 1; display: block; filter: drop-shadow(0 6px 6px rgba(0,0,0,.15)); }
+.word-card .wc-word { position: relative; z-index: 1; margin-top: 8px; font-size: 22px; font-weight: 800; color: var(--ink); }
+.word-card .wc-thai { position: relative; z-index: 1; font-size: 14px; color: var(--ink-soft); }
+.word-card .wc-stars { position: relative; z-index: 1; margin-top: 6px; font-size: 15px; letter-spacing: 2px; color: var(--star); }
+.word-card.done { outline: 3px solid var(--star); }
+.word-card.done::after {
+  content: "🏆"; position: absolute; top: 8px; right: 10px; font-size: 20px; z-index: 2;
 }
 
-/* Hidden helper — toggled by app.js (คลาสซ่อน) */
-.hidden {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
-}
+.home-footer { text-align: center; padding: 8px 12px calc(env(safe-area-inset-bottom) + 12px); font-size: 12px; color: var(--ink-soft); }
 
-#write-card {
-  width: min(92vw, 420px);
-  background: #fff;
-  border-radius: 34px;
-  padding: 22px 20px 26px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
-  text-align: center;
+/* ============================================================
+   3) PLAY (หน้าเล่น)
+   ============================================================ */
+.play-stage {
+  flex: 1; display: flex; flex-direction: column;
+  background: linear-gradient(180deg, var(--stage-1, #FFD180), var(--stage-2, #FF8A65));
+  transition: background .5s ease;
 }
-
-#write-title {
-  color: #5D4037;
-  font-size: 24px;
-  line-height: 1.3;
-  margin-bottom: 14px;
+.play-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; gap: 10px;
 }
-#write-title small { font-size: 16px; color: #8D6E63; }
+.play-title { text-align: center; color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,.15); }
+.play-word { display: block; font-size: 30px; font-weight: 800; line-height: 1; }
+.play-thai { display: block; font-size: 15px; opacity: .95; }
+.play-stars { font-size: 22px; letter-spacing: 2px; color: #FFF; text-shadow: 0 2px 0 rgba(0,0,0,.15); }
 
-/* The drawing canvas (พื้นที่วาด) */
+.character-zone {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; position: relative; gap: 10px;
+}
+.character {
+  font-size: clamp(120px, 44vw, 300px); line-height: 1;
+  filter: drop-shadow(0 20px 18px rgba(0,0,0,.22));
+  animation: floaty 3s ease-in-out infinite;
+  transition: transform .12s;
+}
+@media (min-width: 620px) { .character { font-size: 220px; } }
+.character:active { transform: scale(.92); }
+.character.bounce { animation: charCheer .7s ease; }
+
+.speech-bubble {
+  min-height: 0; max-width: 82%;
+  background: #fff; color: var(--ink);
+  padding: 0 16px; border-radius: 20px;
+  font-size: 18px; font-weight: 700; text-align: center;
+  box-shadow: var(--shadow); opacity: 0; transform: translateY(8px);
+  transition: opacity .25s, transform .25s, padding .25s;
+  overflow: hidden;
+}
+.speech-bubble.show { opacity: 1; transform: translateY(0); padding: 12px 16px; }
+
+/* Activity buttons (ปุ่มกิจกรรม) */
+.activity-bar {
+  display: flex; gap: 12px; justify-content: center;
+  padding: 14px 14px calc(env(safe-area-inset-bottom) + 18px);
+  flex-wrap: wrap;
+}
+.act-btn {
+  flex: 1 1 0; min-width: 72px; max-width: 120px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: rgba(255,255,255,.96); color: var(--ink);
+  border-radius: 24px; padding: 12px 6px;
+  box-shadow: 0 6px 0 rgba(0,0,0,.15), var(--shadow);
+  transition: transform .08s, box-shadow .08s;
+}
+.act-btn:active { transform: translateY(5px); box-shadow: 0 1px 0 rgba(0,0,0,.15), var(--shadow); }
+.act-btn .act-emoji { font-size: 34px; }
+.act-btn .act-label { font-size: 15px; font-weight: 800; }
+.act-btn.busy { animation: listen 1s ease-in-out infinite; background: #FFEBEE; }
+.act-btn.done-badge { position: relative; }
+.act-btn.done-badge::after { content: "⭐"; position: absolute; top: -6px; right: -4px; font-size: 18px; }
+
+/* ============================================================
+   OVERLAYS (โมดัลต่าง ๆ)
+   ============================================================ */
+.overlay {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 236, 179, 0.94); backdrop-filter: blur(4px);
+  transition: opacity .25s;
+}
+.overlay-card {
+  width: min(92vw, 420px); background: #fff; border-radius: 34px;
+  padding: 20px; text-align: center; box-shadow: var(--shadow);
+}
+.overlay-title { color: var(--ink); font-size: 22px; line-height: 1.25; margin-bottom: 12px; }
+.overlay-title small { font-size: 15px; color: var(--ink-soft); }
 #write-canvas {
-  width: min(80vw, 320px);
-  height: min(80vw, 320px);
-  background: #FFFDF6;
-  border: 4px dashed #FFCC80;
-  border-radius: 24px;
-  touch-action: none;               /* CRITICAL: stop scroll while tracing */
-  display: block;
-  margin: 0 auto;
+  width: min(80vw, 320px); height: min(80vw, 320px);
+  background: #FFFDF6; border: 4px dashed #FFCC80; border-radius: 24px;
+  touch-action: none; display: block; margin: 0 auto;
 }
+.overlay-actions { display: flex; gap: 14px; justify-content: center; margin-top: 16px; }
+.pill-btn {
+  padding: 14px 26px; border-radius: 30px; font-size: 18px; font-weight: 800; color: #fff;
+  box-shadow: 0 6px 0 rgba(0,0,0,.2); transition: transform .08s, box-shadow .08s;
+}
+.pill-btn:active { transform: translateY(5px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.pill-btn.green { background: linear-gradient(160deg,#81C784,#43A047); box-shadow: 0 6px 0 var(--green-d); }
+.pill-btn.grey { background: linear-gradient(160deg,#B0BEC5,#78909C); box-shadow: 0 6px 0 #546E7A; }
 
-#write-actions {
-  display: flex;
-  gap: 18px;
-  justify-content: center;
-  margin-top: 18px;
+/* ============================================================
+   AR VIEW (มุมมองกล้อง AR)
+   ============================================================ */
+.ar-view { position: fixed; inset: 0; z-index: 70; background: #000; }
+#ar-scene-host, #ar-scene-host .a-canvas, #ar-scene-host video { position: absolute; inset: 0; }
+.ar-hud { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.ar-hud .icon-btn { pointer-events: auto; position: absolute; top: max(env(safe-area-inset-top),14px); right: 14px; }
+.ar-hint {
+  position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 22px);
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.5); color: #fff; padding: 10px 18px; border-radius: 22px;
+  font-size: 15px; text-align: center; transition: opacity .4s;
 }
+.ar-hint.found { opacity: 0; }
 
-/* Smaller variant of the kid button inside the modal */
-.kid-btn.small {
-  width: 92px;
-  height: 92px;
-  border-radius: 24px;
+/* ============================================================
+   FX: confetti + cheer toast (ฉลอง)
+   ============================================================ */
+.fx-canvas { position: fixed; inset: 0; z-index: 80; pointer-events: none; }
+.cheer {
+  position: fixed; left: 50%; top: 38%; transform: translate(-50%,-50%) scale(.5);
+  z-index: 85; pointer-events: none;
+  font-size: 40px; font-weight: 900; color: #fff; text-align: center;
+  text-shadow: 0 4px 0 rgba(0,0,0,.2), 0 0 24px rgba(255,193,7,.8);
+  opacity: 0; transition: opacity .2s;
 }
-.kid-btn.small .btn-emoji { font-size: 34px; }
-.kid-btn.small .btn-label { font-size: 15px; }
+.cheer.show { animation: cheerPop .9s ease forwards; }
 
-/* "Done" button uses the friendly green (ปุ่มเสร็จ สีเขียว) */
-.kid-btn.close {
-  background: linear-gradient(160deg, #81C784 0%, #43A047 100%);
-  box-shadow: 0 8px 0 #2E7D32, 0 12px 18px rgba(0, 0, 0, 0.35);
-}
-.kid-btn.close:active {
-  box-shadow: 0 2px 0 #2E7D32, 0 4px 8px rgba(0, 0, 0, 0.35);
-}
+/* ---------- Helpers ---------- */
+.hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
 
-/* ---------- Small phones (จอเล็ก) ---------- */
-@media (max-height: 640px) {
-  .kid-btn { width: 92px; height: 92px; }
-  .btn-emoji { font-size: 34px; }
+/* ============================================================
+   KEYFRAMES (แอนิเมชัน)
+   ============================================================ */
+@keyframes bob      { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+@keyframes floaty   { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-22px) rotate(2deg)} }
+@keyframes listen   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+@keyframes charCheer{ 0%{transform:scale(1)} 30%{transform:scale(1.3) rotate(-8deg)} 55%{transform:scale(.9) rotate(6deg)} 75%{transform:scale(1.15) rotate(-3deg)} 100%{transform:scale(1)} }
+@keyframes cheerPop { 0%{opacity:0; transform:translate(-50%,-50%) scale(.4)} 25%{opacity:1; transform:translate(-50%,-50%) scale(1.15)} 70%{opacity:1; transform:translate(-50%,-50%) scale(1)} 100%{opacity:0; transform:translate(-50%,-60%) scale(1)} }
+
+/* Respect reduced-motion (เคารพผู้ใช้ที่ปิดแอนิเมชัน) */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }

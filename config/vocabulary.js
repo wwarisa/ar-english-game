@@ -1,77 +1,130 @@
 /**
  * ============================================================
- *  vocabulary.js  —  คลังคำศัพท์ (Vocabulary Data Module)
+ *  vocabulary.js — Curriculum & word data (หลักสูตร + คลังคำศัพท์)
  * ============================================================
- *  A modular dictionary of vocabulary items for the AR game.
- *  โมดูลเก็บข้อมูลคำศัพท์แบบแยกส่วน เพิ่ม/แก้ไขคำได้ง่าย
+ *  A structured, teacher-designed curriculum for ages 0–5.
+ *  หลักสูตรออกแบบตามพัฒนาการเด็ก แบ่งเป็นหมวด เรียงจากง่ายไปยาก
  *
- *  Each entry holds:
- *   - word         : the English word (คำศัพท์ภาษาอังกฤษ)
- *   - letter       : target letter for the writing game (ตัวอักษรที่ให้ฝึกเขียน)
- *   - phonicsSound : path to phonics pronunciation audio (เสียงโฟนิกส์)
- *   - animalSound  : path to the animal/object sound effect (เสียงสัตว์/วัตถุ)
- *   - model3d      : path to a glTF/GLB 3D model (โมเดล 3 มิติ)
- *   - fallbackColor: hex color used if the 3D model is missing/fails
- *                    (สีสำรองใช้เมื่อโหลดโมเดลไม่ได้)
+ *  Design notes (หลักการออกแบบ):
+ *   - Emoji is the "character" so it looks friendly & works on
+ *     every device with no 3D asset downloads (ใช้อีโมจิเป็นตัวละคร).
+ *   - Real English pronunciation comes from the browser's
+ *     Speech Synthesis (TTS) — no audio files required.
+ *     (ออกเสียงจริงด้วย TTS ของเบราว์เซอร์)
+ *   - Every word has a Thai translation to support bilingual homes.
  *
- *  NOTE: Audio/model paths are placeholders. Drop your own assets
- *  into /assets and update the paths. Missing files degrade
- *  gracefully (see app.js).
+ *  Each WORD entry:
+ *   - id           : unique key (คีย์)
+ *   - word         : English word (คำอังกฤษ)
+ *   - letter       : target uppercase letter for tracing (ตัวอักษรฝึกเขียน)
+ *   - emoji        : the visual character (ตัวละครอีโมจิ)
+ *   - category     : group id (หมวด)
+ *   - thai         : Thai meaning (คำแปลไทย)
+ *   - phonics      : approximate phonic sound spelled for TTS (เสียงโฟนิกส์)
+ *   - sentence     : tiny example sentence (ประโยคง่าย ๆ)
+ *   - sentenceThai : Thai of the sentence (คำแปลประโยค)
+ *   - color        : theme/fallback color hex (สีประจำคำ)
+ *   - audio        : OPTIONAL real recordings (ไฟล์เสียงจริง ถ้ามี)
  * ============================================================
  */
 
-const VOCABULARY = {
-  cat: {
-    word: "Cat",
-    letter: "C",
-    phonicsSound: "assets/audio/phonics_c.wav", // /k/ - "kuh"
-    animalSound: "assets/audio/cat_meow.wav",
-    model3d: "assets/models/cat.glb",
-    fallbackColor: "#FF7043", // warm orange (สีส้ม)
-  },
-
-  dog: {
-    word: "Dog",
-    letter: "D",
-    phonicsSound: "assets/audio/phonics_d.wav", // /d/ - "duh"
-    animalSound: "assets/audio/dog_bark.wav",
-    model3d: "assets/models/dog.glb",
-    fallbackColor: "#8D6E63", // brown (สีน้ำตาล)
-  },
-
-  bird: {
-    word: "Bird",
-    letter: "B",
-    phonicsSound: "assets/audio/phonics_b.wav", // /b/ - "buh"
-    animalSound: "assets/audio/bird_tweet.wav",
-    model3d: "assets/models/bird.glb",
-    fallbackColor: "#42A5F5", // sky blue (สีฟ้า)
-  },
-
-  fish: {
-    word: "Fish",
-    letter: "F",
-    phonicsSound: "assets/audio/phonics_f.wav", // /f/ - "fff"
-    animalSound: "assets/audio/fish_bubble.wav",
-    model3d: "assets/models/fish.glb",
-    fallbackColor: "#26C6DA", // aqua (สีเขียวน้ำทะเล)
-  },
+// ---- Categories (หมวดหมู่) ----
+const CATEGORIES = {
+  animals: { id: "animals", label: "Animals", thai: "สัตว์",   emoji: "🐾", color: "#FF8A65" },
+  food:    { id: "food",    label: "Food",    thai: "อาหาร",   emoji: "🍎", color: "#EF5350" },
+  nature:  { id: "nature",  label: "Nature",  thai: "ธรรมชาติ", emoji: "🌳", color: "#66BB6A" },
 };
 
+// ---- Words (คำศัพท์) — ordered easy → richer ----
+const WORDS = [
+  // ===== ANIMALS (สัตว์) =====
+  {
+    id: "cat", word: "Cat", letter: "C", emoji: "🐱", category: "animals",
+    thai: "แมว", phonics: "kuh", sentence: "The cat says meow.",
+    sentenceThai: "แมวร้องเหมียว", color: "#FF7043",
+    audio: { word: "assets/audio/cat_meow.wav" },
+  },
+  {
+    id: "dog", word: "Dog", letter: "D", emoji: "🐶", category: "animals",
+    thai: "สุนัข", phonics: "duh", sentence: "The dog says woof.",
+    sentenceThai: "สุนัขเห่าโฮ่ง", color: "#8D6E63",
+    audio: { word: "assets/audio/dog_bark.wav" },
+  },
+  {
+    id: "bird", word: "Bird", letter: "B", emoji: "🐦", category: "animals",
+    thai: "นก", phonics: "buh", sentence: "The bird can fly.",
+    sentenceThai: "นกบินได้", color: "#42A5F5",
+    audio: { word: "assets/audio/bird_tweet.wav" },
+  },
+  {
+    id: "fish", word: "Fish", letter: "F", emoji: "🐠", category: "animals",
+    thai: "ปลา", phonics: "fff", sentence: "The fish can swim.",
+    sentenceThai: "ปลาว่ายน้ำได้", color: "#26C6DA",
+    audio: { word: "assets/audio/fish_bubble.wav" },
+  },
+  {
+    id: "lion", word: "Lion", letter: "L", emoji: "🦁", category: "animals",
+    thai: "สิงโต", phonics: "lll", sentence: "The lion is big.",
+    sentenceThai: "สิงโตตัวใหญ่", color: "#FFB300",
+  },
+  {
+    id: "elephant", word: "Elephant", letter: "E", emoji: "🐘", category: "animals",
+    thai: "ช้าง", phonics: "eh", sentence: "The elephant is grey.",
+    sentenceThai: "ช้างสีเทา", color: "#90A4AE",
+  },
+
+  // ===== FOOD (อาหาร) =====
+  {
+    id: "apple", word: "Apple", letter: "A", emoji: "🍎", category: "food",
+    thai: "แอปเปิล", phonics: "ah", sentence: "The apple is red.",
+    sentenceThai: "แอปเปิลสีแดง", color: "#EF5350",
+  },
+  {
+    id: "banana", word: "Banana", letter: "B", emoji: "🍌", category: "food",
+    thai: "กล้วย", phonics: "buh", sentence: "The banana is yellow.",
+    sentenceThai: "กล้วยสีเหลือง", color: "#FDD835",
+  },
+  {
+    id: "egg", word: "Egg", letter: "E", emoji: "🥚", category: "food",
+    thai: "ไข่", phonics: "eh", sentence: "I eat an egg.",
+    sentenceThai: "ฉันกินไข่", color: "#FFF59D",
+  },
+
+  // ===== NATURE (ธรรมชาติ) =====
+  {
+    id: "sun", word: "Sun", letter: "S", emoji: "☀️", category: "nature",
+    thai: "พระอาทิตย์", phonics: "sss", sentence: "The sun is hot.",
+    sentenceThai: "พระอาทิตย์ร้อน", color: "#FFA726",
+  },
+  {
+    id: "moon", word: "Moon", letter: "M", emoji: "🌙", category: "nature",
+    thai: "พระจันทร์", phonics: "mmm", sentence: "The moon is at night.",
+    sentenceThai: "พระจันทร์มาตอนกลางคืน", color: "#7E57C2",
+  },
+  {
+    id: "tree", word: "Tree", letter: "T", emoji: "🌳", category: "nature",
+    thai: "ต้นไม้", phonics: "tuh", sentence: "The tree is tall.",
+    sentenceThai: "ต้นไม้สูง", color: "#66BB6A",
+  },
+];
+
+// ---- Fast lookup map by id (แมพค้นหาด้วย id) ----
+const WORDS_BY_ID = WORDS.reduce((acc, w) => {
+  acc[w.id] = w;
+  return acc;
+}, {});
+
 /**
- * ACTIVE_WORD_KEY — the vocabulary item currently attached to the
- * Hiro marker. Change this key to switch which animal appears.
- * (คำที่กำลังใช้งานอยู่ เปลี่ยนค่านี้เพื่อสลับสัตว์)
- *
- * For a full multi-marker experience you would map different markers
- * to different keys; here we keep ONE active word for simplicity and
- * performance on mobile. (ใช้คำเดียวเพื่อให้เบาสำหรับมือถือ)
+ * Legacy single-word fields kept so the older Hiro AR marker path
+ * keeps working. (คงตัวแปรเดิมไว้ให้โค้ด AR มาร์กเกอร์เก่ายังทำงาน)
  */
 const ACTIVE_WORD_KEY = "cat";
 
-// Expose to the global scope so index.html + app.js (plain <script>)
-// can read them without a module bundler.
-// เปิดให้ไฟล์อื่นเข้าถึงผ่าน window (ไม่ต้องใช้ bundler)
-window.VOCABULARY = VOCABULARY;
+// Expose everything on window (no bundler) — เปิดให้ไฟล์อื่นใช้ผ่าน window
+window.CATEGORIES = CATEGORIES;
+window.WORDS = WORDS;
+window.WORDS_BY_ID = WORDS_BY_ID;
 window.ACTIVE_WORD_KEY = ACTIVE_WORD_KEY;
-window.ACTIVE_WORD = VOCABULARY[ACTIVE_WORD_KEY];
+window.ACTIVE_WORD = WORDS_BY_ID[ACTIVE_WORD_KEY];
+// Back-compat alias (บางส่วนของโค้ดเดิมอ้าง VOCABULARY)
+window.VOCABULARY = WORDS_BY_ID;
