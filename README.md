@@ -6,7 +6,8 @@ A premium, **web-based English learning game for little explorers aged 0–5**.
 100% free to host (GitHub Pages). Pure **HTML / CSS / Vanilla JS** + **A-Frame** + **AR.js**.
 No frameworks, no build step, works offline as an installable app (PWA).
 
-**Live:** https://wwarisa.github.io/ar-english-game/
+**Live app:** https://wwarisa.github.io/ar-english-game/
+**Marketing page:** https://wwarisa.github.io/ar-english-game/landing.html
 
 ---
 

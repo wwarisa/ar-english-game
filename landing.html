@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>AR Magic English Safari — English adventures for ages 0–5</title>
+<meta name="description" content="A magical, screen-friendly English learning game for little explorers aged 0–5. Real voices, playful activities, and a parent dashboard." />
+<meta name="theme-color" content="#FF8A65" />
+<link rel="icon" type="image/png" href="assets/icons/icon-192.png" />
+<!--
+  landing.html — Marketing / sales page (หน้าแนะนำสินค้า)
+  Self-contained (inline CSS). Prices are PLACEHOLDERS — edit freely.
+  Links to the app at index.html.
+-->
+<style>
+  :root{
+    --brand:#FF8A65; --brand-d:#E0603F; --ink:#4E342E; --ink-soft:#8D6E63;
+    --purple:#7E57C2; --teal:#26A69A; --star:#FFC107;
+    --radius:26px; --shadow:0 16px 40px rgba(0,0,0,.12);
+    --font:"Baloo 2","Comic Sans MS","Segoe UI Rounded","Trebuchet MS",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font);color:var(--ink);background:#FFF7EC;line-height:1.5;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:800;border:none;cursor:pointer;
+    padding:15px 28px;border-radius:40px;font-size:18px;font-family:inherit;transition:transform .1s, box-shadow .1s}
+  .btn-primary{background:var(--brand);color:#fff;box-shadow:0 8px 0 var(--brand-d)}
+  .btn-primary:active{transform:translateY(5px);box-shadow:0 3px 0 var(--brand-d)}
+  .btn-ghost{background:#fff;color:var(--brand);box-shadow:var(--shadow)}
+  .eyebrow{display:inline-block;background:#FFE0B2;color:#E65100;font-weight:800;font-size:13px;
+    padding:6px 14px;border-radius:20px;letter-spacing:.5px}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;background:rgba(255,247,236,.9);backdrop-filter:blur(8px)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;max-width:1080px;margin:0 auto}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;color:var(--brand)}
+  .brand img{width:38px;height:38px;border-radius:10px}
+
+  /* HERO */
+  .hero{background:linear-gradient(160deg,#FFE29F,#FFA99F 55%,#FF719A);color:#fff;padding:60px 0 80px;text-align:center;position:relative;overflow:hidden}
+  .hero h1{font-size:clamp(34px,6vw,58px);line-height:1.05;text-shadow:0 4px 0 rgba(0,0,0,.1);margin:14px 0}
+  .hero p.sub{font-size:clamp(17px,2.4vw,22px);opacity:.97;max-width:620px;margin:0 auto 26px}
+  .hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .hero .note{margin-top:16px;font-size:14px;opacity:.9}
+  .float-emojis{font-size:40px;letter-spacing:10px;margin-top:34px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.15))}
+
+  /* PHONE MOCK */
+  .showcase{margin-top:-50px;display:flex;justify-content:center;padding:0 20px}
+  .phone{width:290px;background:#1c1c1e;border-radius:44px;padding:12px;box-shadow:var(--shadow)}
+  .phone-screen{background:linear-gradient(180deg,#FFF7EC,#FFE9D6);border-radius:34px;overflow:hidden;padding:16px 14px}
+  .ps-head{display:flex;justify-content:space-between;align-items:center;color:var(--brand);font-weight:800;font-size:15px;margin-bottom:12px}
+  .ps-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ps-card{background:#fff;border-radius:18px;padding:12px 6px 10px;text-align:center;box-shadow:0 6px 14px rgba(0,0,0,.08)}
+  .ps-card .e{font-size:40px}
+  .ps-card .w{font-weight:800;font-size:15px;margin-top:2px}
+  .ps-card .t{font-size:11px;color:var(--ink-soft)}
+  .ps-card .s{color:var(--star);font-size:12px}
+
+  /* SECTIONS */
+  section.pad{padding:64px 0}
+  h2.title{font-size:clamp(26px,4vw,38px);text-align:center;margin-bottom:8px}
+  p.lead{text-align:center;color:var(--ink-soft);max-width:600px;margin:0 auto 36px;font-size:17px}
+
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+  .card{background:#fff;border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+  .card .ico{font-size:44px}
+  .card h3{margin:12px 0 6px;font-size:20px}
+  .card p{color:var(--ink-soft);font-size:15px}
+  .card small{display:block;color:var(--ink-soft);opacity:.8;margin-top:6px}
+
+  /* curriculum chips */
+  .cats{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  .cat{background:#fff;border-radius:20px;padding:12px 20px;font-weight:800;box-shadow:var(--shadow);display:flex;gap:8px;align-items:center}
+  .cat .n{color:var(--ink-soft);font-weight:600;font-size:14px}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;counter-reset:s}
+  .step{background:#fff;border-radius:var(--radius);padding:26px;box-shadow:var(--shadow);position:relative}
+  .step::before{counter-increment:s;content:counter(s);position:absolute;top:-16px;left:22px;width:40px;height:40px;
+    background:var(--brand);color:#fff;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:20px;box-shadow:0 5px 0 var(--brand-d)}
+  .step h3{margin:14px 0 6px}
+  .step p{color:var(--ink-soft);font-size:15px}
+
+  /* pricing */
+  .prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;align-items:stretch}
+  .price{background:#fff;border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .price.feature{outline:3px solid var(--brand);position:relative}
+  .price.feature .tag{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--brand);color:#fff;font-size:12px;font-weight:800;padding:5px 14px;border-radius:14px}
+  .price h3{font-size:22px}
+  .price .amt{font-size:40px;font-weight:800;margin:8px 0}
+  .price .amt small{font-size:16px;color:var(--ink-soft);font-weight:600}
+  .price ul{list-style:none;margin:14px 0 22px;display:flex;flex-direction:column;gap:10px}
+  .price li{font-size:15px;color:var(--ink)}
+  .price li::before{content:"✅ ";}
+  .price .btn{margin-top:auto;justify-content:center}
+
+  /* faq */
+  details{background:#fff;border-radius:20px;padding:16px 20px;box-shadow:var(--shadow);margin-bottom:12px;cursor:pointer}
+  details summary{font-weight:800;font-size:17px;list-style:none}
+  details summary::-webkit-details-marker{display:none}
+  details p{margin-top:10px;color:var(--ink-soft);font-size:15px}
+
+  footer{background:#4E342E;color:#FFE0B2;text-align:center;padding:36px 20px}
+  footer a{color:#FFCC80;font-weight:700}
+  .band{background:linear-gradient(120deg,var(--purple),#5C6BC0);color:#fff;border-radius:var(--radius);padding:44px;text-align:center;margin:0 20px}
+  .band h2{color:#fff}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <a class="brand" href="#top"><img src="assets/icons/icon-192.png" alt="logo" />English Safari</a>
+    <a class="btn btn-primary" href="index.html">▶ Play Free</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <span class="eyebrow">AGES 0–5 · เด็กเล็ก 0–5 ปี</span>
+    <h1>English adventures<br />for little explorers 🦁</h1>
+    <p class="sub">A magical, screen-friendly game where children learn their first English words
+      with real voices, playful activities, and joyful rewards — no printing, no setup.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="index.html">▶ Play the Demo</a>
+      <a class="btn btn-ghost" href="#pricing">See Pricing</a>
+    </div>
+    <p class="note">เล่นได้ทันทีบนมือถือ · ไม่ต้องติดตั้ง · ออกเสียงภาษาอังกฤษจริง</p>
+    <div class="float-emojis">🐱 🍎 ⭐ 🚗 🔵 🐘</div>
+  </div>
+</header>
+
+<div class="showcase">
+  <div class="phone"><div class="phone-screen">
+    <div class="ps-head"><span>🦁 English Safari</span><span>🔥1 ⭐8</span></div>
+    <div class="ps-grid">
+      <div class="ps-card"><div class="e">🐱</div><div class="w">Cat</div><div class="t">แมว</div><div class="s">★★★</div></div>
+      <div class="ps-card"><div class="e">🍎</div><div class="w">Apple</div><div class="t">แอปเปิล</div><div class="s">★★☆</div></div>
+      <div class="ps-card"><div class="e">⭐</div><div class="w">Star</div><div class="t">ดาว</div><div class="s">★☆☆</div></div>
+      <div class="ps-card"><div class="e">🚗</div><div class="w">Car</div><div class="t">รถยนต์</div><div class="s">★★★</div></div>
+    </div>
+  </div></div>
+</div>
+
+<section class="pad">
+  <div class="wrap">
+    <h2 class="title">Why parents love it 💛</h2>
+    <p class="lead">Built with child-development in mind — short, joyful, and genuinely educational.</p>
+    <div class="grid3">
+      <div class="card"><div class="ico">🔊</div><h3>Real spoken English</h3><p>Every word and sentence is pronounced aloud, so children hear correct pronunciation from day one.</p><small>ออกเสียงจริงทุกคำ</small></div>
+      <div class="card"><div class="ico">✋</div><h3>3 ways to learn</h3><p>Listen, Speak (with the microphone), and Write (trace the letter) — hearing, saying, and doing.</p><small>ฟัง · พูด · เขียน</small></div>
+      <div class="card"><div class="ico">🎯</div><h3>Games & rewards</h3><p>A picture-matching quiz, stars, confetti, streaks and badges keep little learners coming back.</p><small>เกม + ดาว + เหรียญรางวัל</small></div>
+      <div class="card"><div class="ico">📱</div><h3>No setup needed</h3><p>Plays instantly on any phone or tablet — no camera and no printing required. Installs like an app.</p><small>เล่นได้ทันที ไม่ต้องปริ้นต์</small></div>
+      <div class="card"><div class="ico">📺</div><h3>Watch &amp; Learn</h3><p>A hands-free flashcard mode reads each word aloud — perfect for the very youngest.</p><small>โหมดดูและเรียนอัตโนมัติ</small></div>
+      <div class="card"><div class="ico">👪</div><h3>Parent dashboard</h3><p>Track progress by category, see achievements, and follow simple tips — behind a parent gate.</p><small>โซนผู้ปกครอง</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="pad" style="background:#FFF0E0">
+  <div class="wrap">
+    <h2 class="title">36 words · 8 themes 📚</h2>
+    <p class="lead">A gentle, growing curriculum of first words — each with a Thai translation and example sentence.</p>
+    <div class="cats">
+      <div class="cat">🐾 Animals <span class="n">6</span></div>
+      <div class="cat">🍎 Food <span class="n">3</span></div>
+      <div class="cat">🌳 Nature <span class="n">3</span></div>
+      <div class="cat">🎨 Colors <span class="n">4</span></div>
+      <div class="cat">🔢 Numbers <span class="n">5</span></div>
+      <div class="cat">🔷 Shapes <span class="n">5</span></div>
+      <div class="cat">🖐️ Body <span class="n">5</span></div>
+      <div class="cat">🚗 Vehicles <span class="n">5</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="pad">
+  <div class="wrap">
+    <h2 class="title">How it works ✨</h2>
+    <p class="lead">Three tiny steps to a giggle-filled learning moment.</p>
+    <div class="steps">
+      <div class="step"><h3>Pick a word</h3><p>Tap a colorful card — animals, food, numbers and more.</p></div>
+      <div class="step"><h3>Play &amp; learn</h3><p>Listen, shout it into the mic, and trace the letter to earn stars.</p></div>
+      <div class="step"><h3>Celebrate 🎉</h3><p>Confetti, cheers and badges reward every try — building confidence.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="pad" id="pricing" style="background:#FFF0E0">
+  <div class="wrap">
+    <h2 class="title">Simple pricing 💳</h2>
+    <p class="lead">Start free. Upgrade for the full curriculum and parent tools.
+      <br /><small>* ราคาตัวอย่าง ปรับแก้ได้ในไฟล์ landing.html</small></p>
+    <div class="prices">
+      <div class="price">
+        <h3>Free</h3>
+        <div class="amt">฿0</div>
+        <ul><li>A taste of every activity</li><li>Screen mode, no ads</li><li>Works offline</li></ul>
+        <a class="btn btn-ghost" href="index.html">Play now</a>
+      </div>
+      <div class="price feature">
+        <span class="tag">MOST POPULAR</span>
+        <h3>Premium</h3>
+        <div class="amt">฿349<small>/month</small></div>
+        <ul><li>All 8 themes &amp; future words</li><li>Quiz &amp; Watch &amp; Learn</li><li>Parent dashboard &amp; progress</li><li>New content every month</li></ul>
+        <a class="btn btn-primary" href="index.html">Start Premium</a>
+      </div>
+      <div class="price">
+        <h3>Family &amp; Clinic</h3>
+        <div class="amt">฿1,290<small>/month</small></div>
+        <ul><li>Up to 5 children / profiles</li><li>Great for clinics &amp; classrooms</li><li>Priority support</li></ul>
+        <a class="btn btn-ghost" href="mailto:warisa.w.bc@gmail.com">Contact us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pad">
+  <div class="wrap" style="max-width:760px">
+    <h2 class="title">Questions? 🤔</h2>
+    <p class="lead">&nbsp;</p>
+    <details><summary>What ages is it for? · เหมาะกับอายุเท่าไร</summary><p>Designed for children aged 0–5, with an adult nearby. Big buttons and friendly voices suit tiny hands and ears.</p></details>
+    <details><summary>Do I need a camera or a printer?</summary><p>No. The main experience plays entirely on screen. AR (camera + printed marker) is an optional bonus for older kids.</p></details>
+    <details><summary>Does it work offline?</summary><p>Yes — after the first load it can be installed like an app and played without internet.</p></details>
+    <details><summary>Which devices work best?</summary><p>Any modern phone or tablet. Spoken English is clearest on Chrome, Edge, and Android.</p></details>
+  </div>
+</section>
+
+<section class="pad"><div class="band">
+  <h2 class="title">Ready to explore? 🦁</h2>
+  <p class="lead" style="color:#EDE7F6">Give your little one their first English adventure today.</p>
+  <a class="btn btn-ghost" href="index.html">▶ Play the Demo Free</a>
+</div></section>
+
+<footer>
+  <p style="font-size:20px;font-weight:800;margin-bottom:8px">🦁 AR Magic English Safari</p>
+  <p>Made with ❤️ for little explorers · เพื่อการเรียนรู้ของหนู ๆ</p>
+  <p style="margin-top:10px"><a href="index.html">Play</a> · <a href="#pricing">Pricing</a> · <a href="mailto:warisa.w.bc@gmail.com">Contact</a></p>
+</footer>
+
+</body>
+</html>

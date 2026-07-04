@@ -7,10 +7,11 @@
  *  - CDN A-Frame/AR.js are cached at runtime when AR is used
  *  Bump CACHE version to force an update (เปลี่ยนเวอร์ชันเพื่ออัปเดต)
  */
-const CACHE = "safari-v2.1.0";
+const CACHE = "safari-v2.2.0";
 const SHELL = [
   "./",
   "./index.html",
+  "./landing.html",
   "./style.css",
   "./app.js",
   "./config/vocabulary.js",
